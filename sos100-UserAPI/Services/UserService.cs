@@ -23,8 +23,12 @@ public class UserService : IUserService
 
     public async Task<bool> RegisterAsync(string username, string password, string email)
     {
-        if (await _context.Users.AnyAsync(u => u.Username == username))
-            return false;
+        Console.WriteLine($"Attempting to register user: '{username}'");
+    
+        var exists = await _context.Users.AnyAsync(u => u.Username == username);
+        Console.WriteLine($"User exists check: {exists}");
+    
+        if (exists) return false;
 
         var user = new User
         {
@@ -35,6 +39,8 @@ public class UserService : IUserService
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
+    
+        Console.WriteLine($"User '{username}' registered successfully!");
         return true;
     }
 }
