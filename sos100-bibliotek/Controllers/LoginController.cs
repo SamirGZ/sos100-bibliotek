@@ -1,6 +1,11 @@
-﻿namespace sos100_bibliotek.Controllers;
+﻿using Microsoft.AspNetCore.Mvc;
 
-public class LoginController
+namespace sos100_bibliotek.Controllers;
+
+public class LoginController : Controller
 {
-    
+    public IActionResult Index()
+    {
+        return View();
+    }
 }
