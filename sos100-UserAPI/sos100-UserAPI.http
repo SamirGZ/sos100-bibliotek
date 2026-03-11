@@ -1,0 +1,6 @@
+@sos100_UserAPI_HostAddress = http://localhost:5027
+
+GET {{sos100_UserAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
