@@ -1,6 +1,6 @@
 ﻿namespace sos100_bibliotek.Models;
 
-public class Books
+public class BookCatalogue
 {
     public int Id { get; set; }
     public string Title { get; set; } = "";

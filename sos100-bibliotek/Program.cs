@@ -1,9 +1,17 @@
+using sos100_bibliotek.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+
+// Add HTTPClient to CatalogueService
+builder.Services.AddHttpClient<CatalogueService>((ServiceProvider, HttpClient) =>
+{
+    HttpClient.BaseAddress = new Uri("http://localhost:5149");
+});
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
