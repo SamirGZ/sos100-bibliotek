@@ -1,4 +1,4 @@
-﻿namespace Catalogue_service.Models;
+﻿namespace sos100_bibliotek.Models;
 
 public class Books
 {
