@@ -7,4 +7,7 @@ public class BookCatalogue
     public string Author { get; set; } = "";
     public string Publisher { get; set; } = "";
     public int Year { get; set; }
+    public int Isbn { get; set; }
+    public string Pages { get; set; } = "";
+    public string Language { get; set; } = "";
 }

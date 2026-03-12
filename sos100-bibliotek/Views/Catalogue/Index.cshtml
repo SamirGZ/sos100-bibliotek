@@ -1,0 +1,22 @@
+﻿@model IEnumerable<BookCatalogue>
+@{
+    ViewData["Title"] = "Katalog";
+}
+
+<main>
+    <h1>Bokkatalog</h1>
+    <div class = "Catalogue">
+        @foreach (var bookCatalogue in Model)
+            {
+                <div class="Book">
+                    <h3>@bookCatalogue.Author</h3>
+                    <h3>@bookCatalogue.Title</h3>
+                    <h3>@bookCatalogue.Year</h3>
+                    <h3>@bookCatalogue.Language</h3>
+                    <h3>@bookCatalogue.Publisher</h3>
+                    <h3>@bookCatalogue.Pages</h3>
+                    <h3>@bookCatalogue.Isbn</h3>
+                </div>
+            }
+    </div>
+</main>
