@@ -1,6 +1,13 @@
-@Bibliotek.LoanAPI_HostAddress = http://localhost:5029
-
-GET {{Bibliotek.LoanAPI_HostAddress}}/weatherforecast/
-Accept: application/json
+### Hämta alla lån (Detta är din GET som vi testade i webbläsaren)
+GET http://localhost:5029/api/loan
 
 ###
+
+### Skapa ett nytt lån (Nu mycket smartare!)
+POST http://localhost:5029/api/loan
+Content-Type: application/json
+
+{
+  "bookId": 12,
+  "userId": 5
+}

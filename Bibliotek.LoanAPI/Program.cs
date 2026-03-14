@@ -1,4 +1,8 @@
+using Microsoft.EntityFrameworkCore;
+using Bibliotek.LoanAPI.Data; // Ändra till Library.LoanAPI.Data om du döpte det till Library!
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDbContext<LoanDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add services to the container.
 
