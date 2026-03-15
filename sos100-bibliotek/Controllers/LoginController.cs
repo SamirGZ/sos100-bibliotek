@@ -24,6 +24,7 @@ public class LoginController : Controller
             return View();
         }
 
+        HttpContext.Session.SetString("Username", username);
         return RedirectToAction("Index", "Home");
     }
 }
