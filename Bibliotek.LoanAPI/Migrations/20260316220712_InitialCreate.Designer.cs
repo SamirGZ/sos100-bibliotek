@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Bibliotek.LoanAPI.Migrations
 {
     [DbContext(typeof(LoanDbContext))]
-    [Migration("20260315115003_AddUserTable")]
-    partial class AddUserTable
+    [Migration("20260316220712_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
