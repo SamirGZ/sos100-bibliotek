@@ -1,13 +1,30 @@
-### Hämta alla lån (Detta är din GET som vi testade i webbläsaren)
-GET http://localhost:5029/api/loan
-
-###
-
-### Skapa ett nytt lån (Nu mycket smartare!)
-POST http://localhost:5029/api/loan
+### STEG 1: Kontrollera att användaren finns hos klasskamraten
+# OBS: Detta anrop går till user port 5027 (om han har en POST-metod)
+POST http://localhost:5027/api/user
 Content-Type: application/json
 
 {
-  "bookId": 12,
-  "userId": 5
+  "username": "Testanvändare",
+  "email": "test@skola.se"
 }
+
+### STEG 2: Skapa ett lån i DITT API (Port 7058)
+# Detta anrop kommer nu "ringa" till 5027 och 5149 för att kontrollera allt
+POST https://localhost:7058/api/loan
+Content-Type: application/json
+X-Api-Key: Shahin415
+
+{
+  "bookId": 1,
+  "userId": 1
+}
+
+###
+
+### STEG 3: Se alla lån
+GET https://localhost:7058/api/loan
+
+###
+
+### STEG 4: Lämna tillbaka (Byt ut "1" mot rätt lån-ID)
+PUT https://localhost:7058/api/loan/1

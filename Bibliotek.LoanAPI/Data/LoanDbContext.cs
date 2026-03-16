@@ -12,4 +12,5 @@ public class LoanDbContext : DbContext
 
     // Tabellen för lånen i databasen
     public DbSet<Loan> Loans { get; set; }
+    public DbSet<User> Users { get; set; }
 }

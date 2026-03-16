@@ -1,18 +1,25 @@
 using Microsoft.EntityFrameworkCore;
-using Bibliotek.LoanAPI.Data; // Ändra till Library.LoanAPI.Data om du döpte det till Library!
+using Bibliotek.LoanAPI.Data;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// 1. Registrera databasen
 builder.Services.AddDbContext<LoanDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add services to the container.
-
+// 2. Registrera Controllers
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+
+// 3. Registrera HttpClient (Viktigt för att prata med klasskamratens API!)
+builder.Services.AddHttpClient();
+
+// 4. OpenAPI (Swagger)
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Allt efter denna rad är konfiguration av hur appen körs
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
