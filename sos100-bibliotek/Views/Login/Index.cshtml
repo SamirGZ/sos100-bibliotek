@@ -1,0 +1,24 @@
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="login-wrapper">
+    <form asp-action="Login" method="post">
+
+        <p class="login-title">Logga In</p>
+
+        <label for="user">Användarnamn:</label>
+        <input type="text" id="user" name="user">
+
+        <label for="pass">Lösenord:</label>
+        <input type="password" id="pass" name="pass">
+
+        <input type="submit" value="Logga In">
+
+        @if (ViewBag.Error != null)
+        {
+            <p class="login-error">@ViewBag.Error</p>
+        }
+
+    </form>
+</div>
