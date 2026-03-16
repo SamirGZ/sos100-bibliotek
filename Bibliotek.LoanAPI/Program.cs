@@ -7,23 +7,36 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<LoanDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2. Registrera Controllers
+// 2. Registrera CORS (Gör detta INNAN builder.Build)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        policy =>
+        {
+            policy.AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        });
+});
+
+// 3. Registrera Controllers
 builder.Services.AddControllers();
 
-// 3. Registrera HttpClient (Viktigt för att prata med klasskamratens API!)
+// 4. Registrera HttpClient
 builder.Services.AddHttpClient();
 
-// 4. OpenAPI (Swagger)
+// 5. OpenAPI (Swagger)
 builder.Services.AddOpenApi();
 
-var app = builder.Build();
-
-// Allt efter denna rad är konfiguration av hur appen körs
+var app = builder.Build(); // Här låses konfigurationen
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+// Aktivera CORS-policyn vi skapade ovan
+app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();
 
