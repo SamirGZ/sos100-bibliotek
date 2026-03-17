@@ -1,0 +1,21 @@
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="login-wrapper">
+    <form asp-action="Index" asp-controller="Login" method="post">
+
+        <p class="login-title">Logga In</p>
+
+        <label for="username">Användarnamn:</label>
+        <input type="text" id="username" name="username">
+
+        <label for="password">Lösenord:</label>
+        <input type="password" id="password" name="password">
+
+        <input type="submit" value="Logga In">
+
+        <p class="login-error">@ViewBag.Error</p>
+
+    </form>
+</div>
