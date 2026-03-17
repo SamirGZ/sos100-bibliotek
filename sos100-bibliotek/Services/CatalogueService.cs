@@ -13,11 +13,11 @@ public class CatalogueService
 
     public async Task<BookCatalogue[]> GetBookCatalogue()
     {
-        var bookcatalogue = await _httpClient.GetFromJsonAsync<BookCatalogue[]>("BookCatalogue");
+        var bookcatalogue = await _httpClient.GetFromJsonAsync<BookCatalogue[]>("Books");
 
         if (bookcatalogue == null)
         {
-            return [];
+            return Array.Empty<BookCatalogue>();
         }
         return bookcatalogue;
     }

@@ -5,13 +5,13 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-var app = builder.Build();
-
 // Add HTTPClient to CatalogueService
-builder.Services.AddHttpClient<CatalogueService>((ServiceProvider, HttpClient) =>
+builder.Services.AddHttpClient<CatalogueService>((serviceProvider, httpClient) =>
 {
-    HttpClient.BaseAddress = new Uri("http://localhost:5149");
+    httpClient.BaseAddress = new Uri("http://localhost:5149");
 });
+
+var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
