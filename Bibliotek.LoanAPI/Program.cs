@@ -3,11 +3,13 @@ using Bibliotek.LoanAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Registrera databasen
+// --- HÄR REGISTRERAR JAG ALLA TJÄNSTER ---
+
+// Kopplar upp databasen (sqlite)
 builder.Services.AddDbContext<LoanDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2. Registrera CORS (Gör detta INNAN builder.Build)
+// Fixar CORS så att React-appen på localhost får hämta data utan att bli blockad
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
@@ -19,26 +21,23 @@ builder.Services.AddCors(options =>
         });
 });
 
-// 3. Registrera Controllers
 builder.Services.AddControllers();
-
-// 4. Registrera HttpClient
 builder.Services.AddHttpClient();
-
-// 5. OpenAPI (Swagger)
 builder.Services.AddOpenApi();
 
-var app = builder.Build(); // Här låses konfigurationen
+var app = builder.Build(); 
+
+// --- HÄR STÄLLER JAG IN HUR APPEN SKA KÖRAS ---
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-// Aktivera CORS-policyn vi skapade ovan
-app.UseCors("AllowAll");
-
 app.UseHttpsRedirection();
+
+// Aktiverar CORS-inställningen jag gjorde ovanför
+app.UseCors("AllowAll");
 
 app.UseAuthorization();
 
