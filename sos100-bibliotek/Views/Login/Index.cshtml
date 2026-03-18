@@ -3,7 +3,7 @@
 }
 
 <div class="login-wrapper">
-    <form asp-action="Index" asp-controller="Login" method="post">
+    <form asp-action="Index" asp-controller="Login" method="post" class="login-form">
 
         <p class="login-title">Logga In</p>
 
@@ -16,6 +16,10 @@
         <input type="submit" value="Logga In">
 
         <p class="login-error">@ViewBag.Error</p>
+        
+        <p class="login-register">
+            Inget konto? <a class="textbutton" asp-controller="Register" asp-action="Index">Skapa konto</a>
+        </p>
 
     </form>
 </div>

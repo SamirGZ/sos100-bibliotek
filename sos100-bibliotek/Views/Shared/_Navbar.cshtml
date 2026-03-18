@@ -11,7 +11,7 @@
     </div>
     
     <button class="navbutton" style="grid-area: 1 / 14 / 1 / 14;" id="navAboutButton">
-        <a>Profil</a>
+        <a asp-controller="Profile" asp-action="Index">Profil</a>
     </button>
 
     @if (Context.Session.GetString("Username") != null)
