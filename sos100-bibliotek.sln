@@ -2,7 +2,11 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sos100-bibliotek", "sos100-bibliotek\sos100-bibliotek.csproj", "{464FEB9B-8453-4C4A-BE99-56039E0F3881}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bibliotek.LoanAPI", "Bibliotek.LoanAPI\Bibliotek.LoanAPI.csproj", "{BCE7579D-232A-4B90-88F9-A4FEC0C43A12}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sos100-UserAPI", "sos100-UserAPI\sos100-UserAPI.csproj", "{70123787-52AE-4478-A7CD-2BF3633B6B0B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationsService", "NotificationsService\NotificationsService.csproj", "{CEB24495-D5A2-4D7B-A892-9B12996D6959}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -14,9 +18,17 @@ Global
 		{464FEB9B-8453-4C4A-BE99-56039E0F3881}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{464FEB9B-8453-4C4A-BE99-56039E0F3881}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{464FEB9B-8453-4C4A-BE99-56039E0F3881}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCE7579D-232A-4B90-88F9-A4FEC0C43A12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCE7579D-232A-4B90-88F9-A4FEC0C43A12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCE7579D-232A-4B90-88F9-A4FEC0C43A12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCE7579D-232A-4B90-88F9-A4FEC0C43A12}.Release|Any CPU.Build.0 = Release|Any CPU
 		{70123787-52AE-4478-A7CD-2BF3633B6B0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{70123787-52AE-4478-A7CD-2BF3633B6B0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70123787-52AE-4478-A7CD-2BF3633B6B0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70123787-52AE-4478-A7CD-2BF3633B6B0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEB24495-D5A2-4D7B-A892-9B12996D6959}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEB24495-D5A2-4D7B-A892-9B12996D6959}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEB24495-D5A2-4D7B-A892-9B12996D6959}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEB24495-D5A2-4D7B-A892-9B12996D6959}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
