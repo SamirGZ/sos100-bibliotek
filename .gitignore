@@ -3,3 +3,8 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+
+# JetBrains Rider
+.idea/dataSources.xml
+.idea/data_source_mapping.xml
+**/.idea/dataSources.xml

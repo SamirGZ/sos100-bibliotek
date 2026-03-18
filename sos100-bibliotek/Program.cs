@@ -9,6 +9,31 @@ builder.Services.AddHttpClient("NotificationsAPI", client =>
 });
 builder.Services.AddScoped<NotificationService>();
 
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddHttpClient<UserApiService>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["ApiSettings:UserApiBaseUrl"]!);
+    }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    {
+        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+    });
+}
+else
+{
+    builder.Services.AddHttpClient<UserApiService>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["ApiSettings:UserApiBaseUrl"]!);
+    });
+}
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -19,6 +44,9 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
+app.UseSession();
+
 app.UseAuthorization();
 app.MapStaticAssets();
 app.MapControllerRoute(
