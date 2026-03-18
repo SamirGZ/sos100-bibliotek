@@ -10,8 +10,8 @@
         <a class="pointer">Namn - <br>&nbsp;Biblioteket<br></a>
     </div>
     
-    <button class="navbutton" style="grid-area: 1 / 13 / 1 / 13;" id="navAboutButton">
-        <a>Profil</a>
+    <button class="navbutton" style="grid-area: 1 / 14 / 1 / 14;" id="navAboutButton">
+        <a asp-controller="Profile" asp-action="Index">Profil</a>
     </button>
 
     @if (Context.Session.GetString("Username") != null)

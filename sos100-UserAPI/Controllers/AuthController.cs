@@ -30,4 +30,35 @@ public class AuthController : ControllerBase
 
         return Ok(new { message = "User registered successfully" });
     }
+    
+    [HttpGet("{username}")]
+    public async Task<IActionResult> GetUser(string username)
+    {
+        var user = await _userService.GetUserAsync(username);
+        if (user == null)
+            return NotFound(new { message = "User not found" });
+
+        return Ok(new { user.Username, user.Email });
+    }
+
+    [HttpDelete("{username}")]
+    public async Task<IActionResult> DeleteUser(string username)
+    {
+        var success = await _userService.DeleteUserAsync(username);
+        if (!success)
+            return NotFound(new { message = "User not found" });
+
+        return Ok(new { message = "User deleted successfully" });
+    }
+
+    [HttpPut("update-password")]
+    public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordDto dto)
+    {
+        var success = await _userService.UpdatePasswordAsync(dto.Username, dto.NewPassword);
+        if (!success)
+            return NotFound(new { message = "User not found" });
+
+        return Ok(new { message = "Password updated successfully" });
+    }
+    
 }
