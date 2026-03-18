@@ -12,6 +12,7 @@ public class NotificationController : Controller
         _service = service;
     }
 
+    [HttpGet]
     public async Task<IActionResult> Index()
     {
         var notifications = await _service.GetNotificationsAsync();
