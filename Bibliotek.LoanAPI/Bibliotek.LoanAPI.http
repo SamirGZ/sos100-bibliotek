@@ -6,7 +6,7 @@
 @NotificationAPI = http://localhost:5235
 @ApiKey = Shahin415
 
-### STEG 1: Skapa en användare hos klasskamraten (Port 5027)
+### STEG 1: Skapa en användare hos User (Port 5027)
 POST {{UserAPI}}/api/user
 Content-Type: application/json
 
@@ -26,7 +26,7 @@ X-Api-Key: {{ApiKey}}
   "userId": 1
 }
 
-### STEG 3: Se alla lån OCH deras historik
+### STEG 3: Se alla lån och deras historik
 # Här ser du att varje lån har en lista som heter "history" tack vare vår nya tabellkoppling
 GET {{LoanAPI}}/api/loan
 
