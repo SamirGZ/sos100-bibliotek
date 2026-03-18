@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bibliotek.LoanAPI", "Biblio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sos100-UserAPI", "sos100-UserAPI\sos100-UserAPI.csproj", "{70123787-52AE-4478-A7CD-2BF3633B6B0B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationsService", "NotificationsService\NotificationsService.csproj", "{CEB24495-D5A2-4D7B-A892-9B12996D6959}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{70123787-52AE-4478-A7CD-2BF3633B6B0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70123787-52AE-4478-A7CD-2BF3633B6B0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70123787-52AE-4478-A7CD-2BF3633B6B0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEB24495-D5A2-4D7B-A892-9B12996D6959}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEB24495-D5A2-4D7B-A892-9B12996D6959}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEB24495-D5A2-4D7B-A892-9B12996D6959}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEB24495-D5A2-4D7B-A892-9B12996D6959}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
