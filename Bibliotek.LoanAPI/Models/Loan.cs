@@ -9,4 +9,5 @@ public class Loan
     public DateTime LoanDate { get; set; }  // När boken lånades
     public DateTime ReturnDate { get; set; } // När boken senast ska lämnas in
     public bool IsReturned { get; set; }    // Är boken tillbakalämnad? (True/False)
+    public List<LoanEvent> History { get; set; } = new List<LoanEvent>();
 }

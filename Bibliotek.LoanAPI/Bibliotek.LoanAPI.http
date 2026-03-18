@@ -1,30 +1,54 @@
-### STEG 1: Kontrollera att användaren finns hos klasskamraten
-# OBS: Detta anrop går till user port 5027 (om han har en POST-metod)
-POST http://localhost:5027/api/user
+### Variabler för att slippa ändra portar överallt
+@LoanAPI = https://localhost:7058
+@UserAPI = http://localhost:5027
+@CatalogAPI = http://localhost:5149
+@ReservationAPI = http://localhost:5115
+@NotificationAPI = http://localhost:5235
+@ApiKey = Shahin415
+
+### STEG 1: Skapa en användare hos klasskamraten (Port 5027)
+POST {{UserAPI}}/api/user
 Content-Type: application/json
 
 {
-  "username": "Testanvändare",
-  "email": "test@skola.se"
+  "username": "Shahin Test",
+  "email": "shahin@skola.se"
 }
 
 ### STEG 2: Skapa ett lån i DITT API (Port 7058)
-# Detta anrop kommer nu "ringa" till 5027 och 5149 för att kontrollera allt
-POST https://localhost:7058/api/loan
+# Nu skapas även en första rad i tabellen LoanEvents automatiskt
+POST {{LoanAPI}}/api/loan
 Content-Type: application/json
-X-Api-Key: Shahin415
+X-Api-Key: {{ApiKey}}
 
 {
   "bookId": 1,
   "userId": 1
 }
 
-###
+### STEG 3: Se alla lån OCH deras historik
+# Här ser du att varje lån har en lista som heter "history" tack vare vår nya tabellkoppling
+GET {{LoanAPI}}/api/loan
 
-### STEG 3: Se alla lån
-GET https://localhost:7058/api/loan
+### STEG 4: Kontrollera om notisen skickades (Port 5235)
+GET {{NotificationAPI}}/api/notification
 
-###
+### STEG 5: Lämna tillbaka en bok (Byt ut "1" mot ID från listan i steg 3)
+# Detta uppdaterar lånet OCH skapar en ny rad i historik-tabellen
+PUT {{LoanAPI}}/api/loan/1
+Content-Type: application/json
 
-### STEG 4: Lämna tillbaka (Byt ut "1" mot rätt lån-ID)
-PUT https://localhost:7058/api/loan/1
+### STEG 6: Verifiera att historiken har uppdaterats
+# Nu ska du se TVÅ händelser i historik-listan för lånet (Skapat + Återlämnat)
+GET {{LoanAPI}}/api/loan
+
+### STEG 7: Testa spärren (Försök låna samma bok som redan är utlånad)
+# Vi testar med bookId 1 igen (om den inte är återlämnad än)
+POST {{LoanAPI}}/api/loan
+Content-Type: application/json
+X-Api-Key: {{ApiKey}}
+
+{
+  "bookId": 1,
+  "userId": 2
+}

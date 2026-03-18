@@ -7,6 +7,8 @@ using Bibliotek.LoanAPI.Data;
 using Bibliotek.LoanAPI.Models;
 using System;
 using System.Net.Http;
+using System.Net.Http.Json;
+using System.Collections.Generic;
 
 namespace Bibliotek.LoanAPI.Controllers
 {
@@ -25,110 +27,92 @@ namespace Bibliotek.LoanAPI.Controllers
             _config = config;
         }
 
-        // Hämtar alla lån för att se listan
         [HttpGet]
         public async Task<IActionResult> GetAllLoans()
         {
-            var loans = await _context.Loans.ToListAsync(); 
+            // Inkluderar historiken i svaret för att se alla händelser kopplade till lånet
+            var loans = await _context.Loans.Include(l => l.History).ToListAsync(); 
             return Ok(loans);
         }
 
-        // Skapar ett nytt lån med alla valideringar
         [ApiKey]
         [HttpPost]
         public async Task<IActionResult> CreateLoan([FromBody] Loan newLoan)
         {
             var client = _httpClientFactory.CreateClient();
 
-            // 1. Kolla först i min egen databas om boken redan är utlånad
-            // Om IsReturned är false betyder det att boken inte har kommit tillbaka än
+            // Kontrollera om boken redan är utlånad lokalt
             var isBookOut = await _context.Loans
                 .AnyAsync(l => l.BookId == newLoan.BookId && l.IsReturned == false);
 
-            if (isBookOut)
-            {
-                return BadRequest("Den här boken är redan utlånad till någon annan.");
-            }
+            if (isBookOut) return BadRequest("Boken är redan utlånad.");
 
-            // 2. Kontrollera mot Catalog API (port 5149)
+            // Validering mot externa tjänster (Catalog, User, Reservation)
             try 
             {
-                string catalogBaseUrl = _config["ExternalServices:CatalogApi"] ?? "http://localhost:5149/api/item/";
-                string catalogUrl = $"{catalogBaseUrl}{newLoan.BookId}";
-        
-                var catalogResponse = await client.GetAsync(catalogUrl);
-                if (!catalogResponse.IsSuccessStatusCode)
-                {
-                    return BadRequest("Boken kunde inte hittas i katalogen.");
-                }
-            }
-            catch (Exception)
-            {
-                return StatusCode(503, "Catalog API svarar inte.");
-            }
+                // Catalog check
+                var catalogUrl = $"{_config["ExternalServices:CatalogApi"]}{newLoan.BookId}";
+                if (!(await client.GetAsync(catalogUrl)).IsSuccessStatusCode)
+                    return BadRequest("Boken hittades inte i katalogen.");
 
-            // 3. Kontrollera mot User API (port 5027)
-            try
-            {
-                string userBaseUrl = _config["ExternalServices:UserApi"] ?? "http://localhost:5027/api/user/";
-                string userUrl = $"{userBaseUrl}{newLoan.UserId}";
+                // User check
+                var userUrl = $"{_config["ExternalServices:UserApi"]}{newLoan.UserId}";
+                if (!(await client.GetAsync(userUrl)).IsSuccessStatusCode)
+                    return BadRequest("Användaren hittades inte.");
 
-                var userResponse = await client.GetAsync(userUrl);
-                if (!userResponse.IsSuccessStatusCode)
-                {
-                    return BadRequest("Användaren hittades inte i systemet.");
-                }
-            }
-            catch (Exception)
-            {
-                return StatusCode(503, "User API svarar inte.");
-            }
-
-            // 4. Kontrollera mot Reservation API (port 5115)
-            // Här kollar vi om någon står i kö för boken
-            try
-            {
-                string resBaseUrl = _config["ExternalServices:ReservationApi"] ?? "http://localhost:5115/api/reservation/";
-                string resUrl = $"{resBaseUrl}check/{newLoan.BookId}";
-
+                // Reservation check
+                var resUrl = $"{_config["ExternalServices:ReservationApi"]}check/{newLoan.BookId}";
                 var resResponse = await client.GetAsync(resUrl);
-                
-                // Om de svarar 409 (Conflict) tolkar vi det som att boken är reserverad
-                if (resResponse.StatusCode == System.Net.HttpStatusCode.Conflict) 
-                {
-                    return BadRequest("Boken är reserverad av en annan person.");
-                }
+                if (resResponse.StatusCode == System.Net.HttpStatusCode.Conflict)
+                    return BadRequest("Boken är reserverad.");
             }
             catch (Exception)
             {
-                // Vi loggar felet men tillåter lånet om reservationstjänsten ligger nere (så vi inte låser systemet)
-                Console.WriteLine("Kunde inte ansluta till Reservation API.");
+                return StatusCode(503, "Externa valideringstjänster är otillgängliga.");
             }
 
-            // 5. Allt ser bra ut - Sätt datum och spara i databasen
+            // Initiera lånet
             newLoan.LoanDate = DateTime.Now;
-            newLoan.ReturnDate = DateTime.Now.AddDays(30); // Standard 30 dagar
+            newLoan.ReturnDate = DateTime.Now.AddDays(30);
             newLoan.IsReturned = false;
+
+            // Skapa en första händelse i historiken för att logga skapandet
+            newLoan.History.Add(new LoanEvent { Description = "Lån påbörjat och validerat." });
 
             _context.Loans.Add(newLoan);
             await _context.SaveChangesAsync(); 
 
+            // Skicka notis till Notification API
+            try
+            {
+                var notifyUrl = _config["ExternalServices:NotificationApi"];
+                await client.PostAsJsonAsync(notifyUrl, new { 
+                    UserId = newLoan.UserId, 
+                    Message = $"Lån bekräftat för bok {newLoan.BookId}." 
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Notification failed: {ex.Message}");
+            }
+
             return CreatedAtAction(nameof(GetAllLoans), new { id = newLoan.Id }, newLoan);
         }
 
-        // Återlämna en bok
         [HttpPut("{id}")]
         public async Task<IActionResult> ReturnBook(int id)
         {
-            var loan = await _context.Loans.FirstOrDefaultAsync(l => l.Id == id);
+            var loan = await _context.Loans.Include(l => l.History).FirstOrDefaultAsync(l => l.Id == id);
             if (loan == null) return NotFound("Lånet hittades inte.");
 
-            // Markera boken som ledig igen
             loan.IsReturned = true;
-            loan.ReturnDate = DateTime.Now; 
-            await _context.SaveChangesAsync();
+            loan.ReturnDate = DateTime.Now;
 
-            return Ok(new { Message = "Boken har lämnats tillbaka!", Loan = loan });
+            // Lägg till en ny händelse i historiken vid återlämning
+            loan.History.Add(new LoanEvent { Description = "Boken har lämnats tillbaka." });
+
+            await _context.SaveChangesAsync();
+            return Ok(new { Message = "Boken återlämnad!", Loan = loan });
         }
     }
 }
