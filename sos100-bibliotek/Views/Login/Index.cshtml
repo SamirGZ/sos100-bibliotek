@@ -3,22 +3,23 @@
 }
 
 <div class="login-wrapper">
-    <form asp-action="Login" method="post">
+    <form asp-action="Index" asp-controller="Login" method="post" class="login-form">
 
         <p class="login-title">Logga In</p>
 
-        <label for="user">Användarnamn:</label>
-        <input type="text" id="user" name="user">
+        <label for="username">Användarnamn:</label>
+        <input type="text" id="username" name="username">
 
-        <label for="pass">Lösenord:</label>
-        <input type="password" id="pass" name="pass">
+        <label for="password">Lösenord:</label>
+        <input type="password" id="password" name="password">
 
         <input type="submit" value="Logga In">
 
-        @if (ViewBag.Error != null)
-        {
-            <p class="login-error">@ViewBag.Error</p>
-        }
+        <p class="login-error">@ViewBag.Error</p>
+        
+        <p class="login-register">
+            Inget konto? <a class="textbutton" asp-controller="Register" asp-action="Index">Skapa konto</a>
+        </p>
 
     </form>
 </div>

@@ -1,0 +1,31 @@
+@model UserProfileDto
+
+@{
+    ViewData["Title"] = "Profil";
+}
+
+<div class="login-wrapper">
+    <div class="profile-card">
+
+        <p class="login-title">Min Profil</p>
+
+        <div class="profile-info">
+            <p><span>Användarnamn:</span> @Model.Username</p>
+            <p><span>Email:</span> @Model.Email</p>
+        </div>
+
+        <form asp-action="UpdatePassword" asp-controller="Profile" method="post">
+            <label for="newPassword">Nytt Lösenord:</label>
+            <input type="password" id="newPassword" name="newPassword">
+            <input type="submit" value="Uppdatera Lösenord">
+        </form>
+
+        <form asp-action="Delete" asp-controller="Profile" method="post">
+            <input type="submit" value="Radera Konto" class="delete-btn">
+        </form>
+        
+        <p class="login-error">@ViewBag.Error</p>
+        <p class="login-success">@ViewBag.Success</p>
+        
+    </div>
+</div>

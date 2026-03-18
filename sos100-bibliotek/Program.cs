@@ -4,6 +4,61 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpClient("NotificationsAPI", client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5235/");
+});
+builder.Services.AddScoped<NotificationService>();
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddHttpClient<UserApiService>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["ApiSettings:UserApiBaseUrl"]!);
+    }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    {
+        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+    });
+}
+else
+{
+    builder.Services.AddHttpClient<UserApiService>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["ApiSettings:UserApiBaseUrl"]!);
+    });
+}
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddHttpClient<UserApiService>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["ApiSettings:UserApiBaseUrl"]!);
+    }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    {
+        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+    });
+}
+else
+{
+    builder.Services.AddHttpClient<UserApiService>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["ApiSettings:UserApiBaseUrl"]!);
+    });
+}
 
 // Add HTTPClient to CatalogueService
 builder.Services.AddHttpClient<CatalogueService>((serviceProvider, httpClient) =>
@@ -24,6 +79,8 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseSession();
+
 app.UseAuthorization();
 
 app.MapStaticAssets();
@@ -35,4 +92,3 @@ app.MapControllerRoute(
 
 
 app.Run();
-Console.Write("Hello World");

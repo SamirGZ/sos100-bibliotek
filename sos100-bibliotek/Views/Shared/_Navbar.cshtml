@@ -11,10 +11,24 @@
     </div>
     
     <button class="navbutton" style="grid-area: 1 / 14 / 1 / 14;" id="navAboutButton">
-        <a>Profil</a>
+        <a asp-controller="Profile" asp-action="Index">Profil</a>
     </button>
 
-    <button class="navbutton" style="grid-area: 1 / 15 / 1 / 15;" id="navProjectsButton">
-        <a asp-controller="Login" asp-action="Index">Logga In</a>
+    @if (Context.Session.GetString("Username") != null)
+    {
+        <button class="navbutton" style="grid-area: 1 / 15 / 1 / 15;">
+            <a asp-controller="Logout" asp-action="Index">Logga Ut</a>
+        </button>
+    }
+    else
+    {
+        <button class="navbutton" style="grid-area: 1 / 15 / 1 / 15;" id="navProjectsButton">
+            <a asp-controller="Login" asp-action="Index">Logga In</a>
+        </button>
+    }
+
+    <button class="navbutton" style="grid-area: 1 / 13 / 1 / 13;">
+        <a asp-controller="Notification" asp-action="Index">Notifikationer</a>
     </button>
+
 </nav>

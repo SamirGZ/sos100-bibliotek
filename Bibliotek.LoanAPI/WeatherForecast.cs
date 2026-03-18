@@ -1,4 +1,4 @@
-namespace sos100_UserAPI;
+namespace Bibliotek.LoanAPI;
 
 public class WeatherForecast
 {
