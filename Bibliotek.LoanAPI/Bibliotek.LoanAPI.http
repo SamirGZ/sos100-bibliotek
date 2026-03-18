@@ -6,7 +6,7 @@
 @NotificationAPI = http://localhost:5235
 @ApiKey = Shahin415
 
-### STEG 1: Skapa en användare hos klasskamraten (Port 5027)
+### STEG 1: Skapa en användare hos User (Port 5027)
 POST {{UserAPI}}/api/user
 Content-Type: application/json
 
@@ -15,7 +15,7 @@ Content-Type: application/json
   "email": "shahin@skola.se"
 }
 
-### STEG 2: Skapa ett lån i DITT API (Port 7058)
+### STEG 2: Skapa ett lån i Loan API (Port 7058)
 # Nu skapas även en första rad i tabellen LoanEvents automatiskt
 POST {{LoanAPI}}/api/loan
 Content-Type: application/json
@@ -26,14 +26,14 @@ X-Api-Key: {{ApiKey}}
   "userId": 1
 }
 
-### STEG 3: Se alla lån OCH deras historik
+### STEG 3: Se alla lån och deras historik
 # Här ser du att varje lån har en lista som heter "history" tack vare vår nya tabellkoppling
 GET {{LoanAPI}}/api/loan
 
 ### STEG 4: Kontrollera om notisen skickades (Port 5235)
 GET {{NotificationAPI}}/api/notification
 
-### STEG 5: Lämna tillbaka en bok (Byt ut "1" mot ID från listan i steg 3)
+### STEG 5: Lämna tillbaka en bok 
 # Detta uppdaterar lånet OCH skapar en ny rad i historik-tabellen
 PUT {{LoanAPI}}/api/loan/1
 Content-Type: application/json
@@ -42,7 +42,7 @@ Content-Type: application/json
 # Nu ska du se TVÅ händelser i historik-listan för lånet (Skapat + Återlämnat)
 GET {{LoanAPI}}/api/loan
 
-### STEG 7: Testa spärren (Försök låna samma bok som redan är utlånad)
+### STEG 7: Testa spärren 
 # Vi testar med bookId 1 igen (om den inte är återlämnad än)
 POST {{LoanAPI}}/api/loan
 Content-Type: application/json
