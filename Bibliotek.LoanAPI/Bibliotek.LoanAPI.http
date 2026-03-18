@@ -39,7 +39,7 @@ PUT {{LoanAPI}}/api/loan/1
 Content-Type: application/json
 
 ### STEG 6: Verifiera att historiken har uppdaterats
-# Nu ska du se TVÅ händelser i historik-listan för lånet (Skapat + Återlämnat)
+# Nu ska du se två händelser i historik-listan för lånet (Skapat + Återlämnat)
 GET {{LoanAPI}}/api/loan
 
 ### STEG 7: Testa spärren 
