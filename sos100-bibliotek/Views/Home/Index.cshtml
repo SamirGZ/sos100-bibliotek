@@ -6,7 +6,9 @@
     <a class="katalog-title">Sök i katalogen</a>
     <section class="search">
         <input type="search" id="searchInput" placeholder="Sök böcker, rapporter och andra...">
-        <button id="searchButton">Sök</button>
+        <button id="searchButton">
+            <a asp-controller="Books" asp-action="Index">Sök</a>
+        </button>
     </section>
 </div>
 <head>
