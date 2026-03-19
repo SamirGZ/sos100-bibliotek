@@ -18,7 +18,7 @@
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
     <data-source source="LOCAL" name="library" uuid="0e10007f-0563-46c7-a802-845f3f50afae">
-      <driver-ref>sqlite.xerial</driver-ref>
+      <driver-ref>2e6daa2a-f0b2-4716-b9db-ac0a2c203b91</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/sos100-UserAPI/library.db</jdbc-url>
