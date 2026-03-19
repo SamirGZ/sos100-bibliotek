@@ -1,0 +1,34 @@
+@model List<sos100_bibliotek.Models.ReservationViewModel>
+
+<h1>Reservations</h1>
+
+@if (Model == null || !Model.Any())
+{
+    <p>Inga reservationer hittades.</p>
+}
+else
+{
+    <table>
+        <thead>
+        <tr>
+            <th>Id</th>
+            <th>ItemId</th>
+            <th>UserId</th>
+            <th>ReservationDate</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var reservation in Model)
+        {
+            <tr>
+                <td>@reservation.Id</td>
+                <td>@reservation.ItemId</td>
+                <td>@reservation.UserId</td>
+                <td>@reservation.ReservationDate</td>
+                <td>@reservation.Status</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
