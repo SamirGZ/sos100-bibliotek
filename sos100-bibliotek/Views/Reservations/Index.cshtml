@@ -4,16 +4,19 @@
     <div class="reservation-card">
         <div class="page-header">
             <div>
+                <span class="page-label">Bibliotekssystem</span>
                 <h1>Mina reservationer</h1>
                 <p>Här kan du se dina aktuella reservationer och deras status.</p>
             </div>
+
+            <a href="#" class="create-btn">Ny reservation</a>
         </div>
 
         @if (Model == null || !Model.Any())
         {
             <div class="empty-state">
                 <h3>Inga reservationer ännu</h3>
-                <p>Du har just nu inga aktiva reservationer i systemet.</p>
+                <p>Du har just nu inga registrerade reservationer.</p>
             </div>
         }
         else
@@ -64,23 +67,36 @@
 
     .reservation-card {
         width: 100%;
-        max-width: 950px;
+        max-width: 980px;
         background: #ffffff;
-        border-radius: 18px;
+        border-radius: 20px;
         padding: 36px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.07);
     }
 
     .page-header {
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        align-items: flex-start;
+        gap: 20px;
         margin-bottom: 28px;
+        flex-wrap: wrap;
+    }
+
+    .page-label {
+        display: inline-block;
+        margin-bottom: 10px;
+        padding: 6px 12px;
+        background-color: #eef2ff;
+        color: #4338ca;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 700;
     }
 
     .page-header h1 {
         margin: 0 0 8px 0;
-        font-size: 36px;
+        font-size: 38px;
         font-weight: 700;
         color: #1f2937;
     }
@@ -89,6 +105,22 @@
         margin: 0;
         color: #6b7280;
         font-size: 16px;
+        max-width: 600px;
+    }
+
+    .create-btn {
+        background-color: #4f46e5;
+        color: white;
+        padding: 12px 18px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: 0.2s ease;
+    }
+
+    .create-btn:hover {
+        background-color: #4338ca;
+        color: white;
     }
 
     .table-wrapper {
