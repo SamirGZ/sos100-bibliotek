@@ -1,4 +1,4 @@
-﻿@model BookCatalogue
+﻿@model IEnumerable<sos100_bibliotek.Models.BookCatalogue>
 @{
     ViewData["Title"] = "Katalog";
 }
@@ -7,32 +7,16 @@
     <div class="Catalogue">
         <form asp-action="Index" method="post">
             <div>
-                <label>Author:</label>
-                <input asp-for="Author"/>
-            </div>
-            <div>
-                <label>Title:</label>
-                <input asp-for="Title"/>
-            </div>
-            <div>
-                <label>Year:</label>
-                <input asp-for="Year"/>
-            </div>
-            <div>
-                <label>Language:</label>
-                <input asp-for="Language"/>
-            </div>
-            <div>
-                <label>Publisher:</label>
-                <input asp-for="Publisher"/>
-            </div>
-            <div>
-                <label>Pages:</label>
-                <input asp-for="Pages"/>
-            </div>
-            <div>
-                <label>ISBN:</label>
-                <input asp-for="Isbn"/>
+                @foreach (var Books in Model)
+                {
+                    <p> Titel: @Books.Title</p>
+                    <p> Författare: @Books.Author</p>
+                    <p> Utgiven: @Books.Year</p>
+                    <p> Antal sidor: @Books.Pages</p>
+                    <p> Språk: @Books.Language</p>
+                    <p> Förlag: @Books.Publisher</p>
+                    <p> ISBN: @Books.Isbn</p>
+                }
             </div>
         </form>
         <button type="submit">Låna boken!</button>

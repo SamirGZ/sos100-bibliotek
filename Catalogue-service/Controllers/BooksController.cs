@@ -23,7 +23,7 @@ public class BooksController : ControllerBase
     }
 
     [HttpPost]
-    public async Task <IActionResult> PostBooks(BookCatalogue book)
+    public async Task <IActionResult> PostBooks([FromBody] BookCatalogue book)
     {
         _dbContext.Books.Add(book);
        await _dbContext.SaveChangesAsync();
