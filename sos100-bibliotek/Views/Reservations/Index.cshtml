@@ -9,7 +9,7 @@
                 <p>Här kan du se dina aktuella reservationer och deras status.</p>
             </div>
 
-            <a href="#" class="create-btn">Ny reservation</a>
+            <a asp-controller="Reservations" asp-action="Create" class="create-btn">Ny reservation</a>
         </div>
 
         @if (Model == null || !Model.Any())
@@ -30,6 +30,7 @@
                         <th>Användare</th>
                         <th>Bokningsdatum</th>
                         <th>Status</th>
+                        <th>Åtgärd</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -46,6 +47,12 @@
                                 <span class="status-badge @(reservation.Status == "Cancelled" ? "cancelled" : "active")">
                                     @swedishStatus
                                 </span>
+                            </td>
+                            <td>
+                                <form asp-action="Delete" method="post">
+                                    <input type="hidden" name="id" value="@reservation.Id" />
+                                    <button type="submit" class="delete-btn">Ta bort</button>
+                                </form>
                             </td>
                         </tr>
                     }
@@ -191,5 +198,18 @@
     .empty-state p {
         margin: 0;
         color: #6b7280;
+    }
+    .delete-btn {
+        background-color: #dc2626;
+        color: white;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .delete-btn:hover {
+        background-color: #b91c1c;
     }
 </style>
