@@ -1,15 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Bibliotek.LoanAPI.Data;
+using Scalar.AspNetCore; // Se till att denna using finns överst!
 
 var builder = WebApplication.CreateBuilder(args);
 
 // --- HÄR REGISTRERAR JAG ALLA TJÄNSTER ---
 
-// Kopplar upp databasen (sqlite)
 builder.Services.AddDbContext<LoanDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Fixar CORS så att React-appen på localhost får hämta data utan att bli blockad
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
@@ -23,7 +22,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddHttpClient();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(); // Denna genererar JSON-dokumentationen
 
 var app = builder.Build(); 
 
@@ -32,15 +31,13 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    // DENNA RAD SAKNADES: Den mappar upp det grafiska gränssnittet
+    app.MapScalarApiReference(); 
 }
 
 app.UseHttpsRedirection();
-
-// Aktiverar CORS-inställningen jag gjorde ovanför
 app.UseCors("AllowAll");
-
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

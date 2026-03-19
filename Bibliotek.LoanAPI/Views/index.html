@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Bibliotek - Lånesystem</title>
+</head>
+<body>
+<h1>Låna en bok</h1>
+<input type="number" id="bookId" placeholder="Bok-ID">
+<input type="number" id="userId" placeholder="Användar-ID">
+<button onclick="skapaLan()">Registrera Lån</button>
+
+<hr>
+<h2>Aktiva Lån</h2>
+<div id="lanLista"></div>
+
+<script>
+    async function skapaLan() {
+        const data = {
+            bookId: parseInt(document.getElementById('bookId').value),
+            userId: parseInt(document.getElementById('userId').value)
+        };
+
+        const response = await fetch('http://localhost:5029/api/loan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Api-Key': 'Shahin415' },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            alert("Lånet skapat!");
+            laddaLan();
+        } else {
+            const error = await response.text();
+            alert("Fel: " + error);
+        }
+    }
+
+    async function laddaLan() {
+        const response = await fetch('http://localhost:5029/api/loan');
+        const lån = await response.json();
+        document.getElementById('lanLista').innerHTML = lån.map(l =>
+            `<div>Bok ${l.bookId} hos användare ${l.userId} - <button onclick="returnera(${l.id})">Lämna tillbaka</button></div>`
+        ).join('');
+    }
+
+    laddaLan();
+</script>
+</body>
+</html>
