@@ -9,11 +9,12 @@ public class CatalogueService
     public CatalogueService(HttpClient httpClient)
     {
         _httpClient = httpClient;
+        _httpClient.BaseAddress = new Uri("http://localhost:5149/");
     }
 
     public async Task<BookCatalogue[]> GetBookCatalogue()
     {
-        var bookcatalogue = await _httpClient.GetFromJsonAsync<BookCatalogue[]>("Books");
+        var bookcatalogue = await _httpClient.GetFromJsonAsync<BookCatalogue[]>("api/Books");
 
         if (bookcatalogue == null)
         {

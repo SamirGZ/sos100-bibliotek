@@ -5,7 +5,7 @@ using Catalogue_service.Data;
 namespace Catalogue_service.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class BooksController : ControllerBase
 {
     private readonly BookCatalogueDbContext _dbContext;
@@ -23,9 +23,11 @@ public class BooksController : ControllerBase
     }
 
     [HttpPost]
-    public void PostBooks(BookCatalogue book)
+    public async Task <IActionResult> PostBooks(BookCatalogue book)
     {
         _dbContext.Books.Add(book);
-        _dbContext.SaveChanges();
+       await _dbContext.SaveChangesAsync();
+        
+        return Ok(book);
     }
 }
