@@ -13,9 +13,16 @@ public class NotificationService
 
     public async Task<List<NotificationDto>> GetNotificationsAsync()
     {
-        var client = _httpClientFactory.CreateClient("NotificationsAPI");
-        var result = await client.GetFromJsonAsync<List<NotificationDto>>("api/notifications");
-        return result ?? new List<NotificationDto>();
+        try
+        {
+            var client = _httpClientFactory.CreateClient("NotificationsAPI");
+            var result = await client.GetFromJsonAsync<List<NotificationDto>>("api/notifications");
+            return result ?? new List<NotificationDto>();
+        }
+        catch (Exception)
+        {
+            return new List<NotificationDto>();
+        }
     }
 
     public async Task CreateNotificationAsync(string message, int userId)
@@ -38,20 +45,27 @@ public class NotificationService
 
     public async Task CheckOverdueLoansAsync()
     {
-        var client = _httpClientFactory.CreateClient();
-        var loans = await client.GetFromJsonAsync<List<LoanDto>>("http://localhost:5029/api/loan");
-
-        if (loans == null) return;
-
-        foreach (var loan in loans)
+        try
         {
-            if (!loan.IsReturned && loan.ReturnDate < DateTime.Now)
+            var client = _httpClientFactory.CreateClient();
+            var loans = await client.GetFromJsonAsync<List<LoanDto>>("http://localhost:5029/api/loan");
+
+            if (loans == null) return;
+
+            foreach (var loan in loans)
             {
-                await CreateNotificationAsync(
-                    $"Påminnelse: Lån #{loan.Id} för användare {loan.UserId} är försenat sedan {loan.ReturnDate:d}",
-                    loan.UserId
-                );
+                if (!loan.IsReturned && loan.ReturnDate < DateTime.Now)
+                {
+                    await CreateNotificationAsync(
+                        $"Påminnelse: Lån #{loan.Id} för användare {loan.UserId} är försenat sedan {loan.ReturnDate:d}",
+                        loan.UserId
+                    );
+                }
             }
+        }
+        catch (Exception)
+        {
+            // Loan API är inte tillgänglig just nu
         }
     }
 }
