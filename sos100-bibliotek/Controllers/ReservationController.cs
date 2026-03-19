@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using sos100_bibliotek.Models;
@@ -32,5 +33,28 @@ public class ReservationsController : Controller
             });
 
         return View(reservations ?? new List<ReservationViewModel>());
+    }
+
+    public IActionResult Create()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create(ReservationViewModel reservation)
+    {
+        var json = JsonSerializer.Serialize(reservation);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        await _httpClient.PostAsync("api/reservations", content);
+
+        return RedirectToAction("Index");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Delete(int id)
+    {
+        await _httpClient.DeleteAsync($"api/reservations/{id}");
+        return RedirectToAction("Index");
     }
 }
