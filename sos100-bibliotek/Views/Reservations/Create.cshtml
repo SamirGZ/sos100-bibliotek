@@ -1,0 +1,22 @@
+@model sos100_bibliotek.Models.ReservationViewModel
+
+<h2>Ny reservation</h2>
+
+<form asp-action="Create" method="post">
+    <div>
+        <label>Objekt ID</label>
+        <input asp-for="ItemId" />
+    </div>
+
+    <div>
+        <label>Användar ID</label>
+        <input asp-for="UserId" />
+    </div>
+
+    <div>
+        <label>Status</label>
+        <input asp-for="Status" />
+    </div>
+
+    <button type="submit">Spara</button>
+</form>
