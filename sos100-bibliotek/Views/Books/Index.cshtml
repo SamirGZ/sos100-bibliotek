@@ -4,22 +4,29 @@
 }
 <link rel="stylesheet" href="~/css/BookCatalogue.css" asp-append-version="true"/>
 <main>
+    <div class="DbKnappar">
+        <button class="CreateKnapp" type="button">Lägg till en bok</button>
+        <button class="DeleteKnapp" type="button">Ta bort en bok</button>
+    </div>
+
     <h1>Bokkatalog</h1>
     <div class="Catalogue">
         <form asp-action="Index" method="post">
             @foreach (var Books in Model)
-                {
-                    <div class="Books">
-                        <p><strong>Titel:</strong> @Books.Title</p>
-                        <p><strong>Författare:</strong> @Books.Author</p>
-                        <p><strong>Utgiven:</strong> @Books.Year</p>
-                        <p><strong>Antal sidor:</strong> @Books.Pages</p>
-                        <p><strong>Språk:</strong> @Books.Language</p>
-                        <p><strong>Förlag:</strong> @Books.Publisher</p>
-                        <p><strong>ISBN:</strong> @Books.Isbn</p>
-                        <button class="LoanKnapp" type="submit">Låna boken!</button>
-                    </div>
-                }
+            {
+                <div class="Books">
+                    <p><strong>Titel:</strong> @Books.Title</p>
+                    <p><strong>Författare:</strong> @Books.Author</p>
+                    <p><strong>Utgiven:</strong> @Books.Year</p>
+                    <p><strong>Antal sidor:</strong> @Books.Pages</p>
+                    <p><strong>Språk:</strong> @Books.Language</p>
+                    <p><strong>Förlag:</strong> @Books.Publisher</p>
+                    <p><strong>ISBN:</strong> @Books.Isbn</p>
+                    
+                    <button class="LoanKnapp" type="button">Låna boken</button>
+                    <button class="UpdateKnapp" type="button">Redigera</button>
+                </div>
+            }
         </form>
     </div>
 </main>

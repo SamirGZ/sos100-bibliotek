@@ -15,11 +15,32 @@
 
 h1 {
     text-align: center;
-    padding-bottom: 10px;
+    padding-bottom: 20px;
 }
 
 .LoanKnapp {
     display: block;
     margin: 0 auto;
+    border-radius: 10px;
+    
+}
+
+.UpdateKnapp {
+    display: block;
+    margin: 0 auto;
+    border-radius: 10px;
+}
+
+.DbKnappar {
+    display: flex;
+    gap: 10px;
+   justify-content: flex-end;
+}
+
+.DeleteKnapp {
+    border-radius: 10px;
+}
+
+.CreateKnapp {
     border-radius: 10px;
 }
