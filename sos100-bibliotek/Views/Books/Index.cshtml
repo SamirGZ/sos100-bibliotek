@@ -1,24 +1,100 @@
 ﻿@model IEnumerable<sos100_bibliotek.Models.BookCatalogue>
 @{
-    ViewData["Title"] = "Katalog";
+ViewData["Title"] = "Katalog";
 }
+
+<style>
+    .Catalogue { display: flex; flex-direction: column; gap: 15px; padding: 20px; }
+    .book-card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 25px;
+        border: 1px solid #e0e0e0;
+        max-width: 550px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
+    }
+    .book-card:hover { transform: translateY(-2px); }
+    .loan-btn {
+        background-color: #00bcd4;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+    .loan-btn:hover { background-color: #0097a7; }
+    .status-msg { margin-top: 10px; font-size: 0.9em; }
+</style>
+
 <main>
-    <h1>Bokkatalog</h1>
+    <div style="padding: 20px;">
+        <h1>📚 Bibliotekskatalog</h1>
+        <p>Välj en bok nedan för att registrera ett nytt lån.</p>
+    </div>
+
     <div class="Catalogue">
-        <form asp-action="Index" method="post">
-            <div>
-                @foreach (var Books in Model)
-                {
-                    <p> Titel: @Books.Title</p>
-                    <p> Författare: @Books.Author</p>
-                    <p> Utgiven: @Books.Year</p>
-                    <p> Antal sidor: @Books.Pages</p>
-                    <p> Språk: @Books.Language</p>
-                    <p> Förlag: @Books.Publisher</p>
-                    <p> ISBN: @Books.Isbn</p>
-                }
-            </div>
-        </form>
-        <button type="submit">Låna boken!</button>
+        @foreach (var book in Model)
+        {
+        <div class="book-card">
+            <h3>@book.Title</h3>
+            <p><strong>Författare:</strong> @book.Author</p>
+            <p><strong>Publicerad:</strong> @book.Year</p>
+            <p><small>Bok-ID: @book.Id</small></p>
+
+            <button type="button" class="loan-btn" onclick="loanBook(@book.Id)">
+                Låna boken!
+            </button>
+            <div id="status-@book.Id" class="status-msg"></div>
+        </div>
+        }
     </div>
 </main>
+
+<script>
+    async function loanBook(bookId) {
+        const statusDiv = document.getElementById('status-' + bookId);
+        statusDiv.innerHTML = "⏳ Behandlar lån...";
+        statusDiv.style.color = "blue";
+
+        const currentUserId = localStorage.getItem('currentUserId') || 1;
+
+        try {
+            const response = await fetch('http://localhost:5029/api/loan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    BookId: parseInt(bookId),
+                    UserId: parseInt(currentUserId)
+                })
+            });
+
+            // Läs svaret som JSON om det går, annars som text
+            let result;
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                result = await response.json();
+            } else {
+                result = { message: await response.text() };
+            }
+
+            if (response.ok) {
+                statusDiv.innerHTML = "✅ " + (result.message || "Lånet sparat!");
+                statusDiv.style.color = "green";
+                alert("Framgång! Kolla din LoanDatabase nu.");
+            } else {
+                console.error("Server Error:", result);
+                statusDiv.innerHTML = "❌ Fel: " + (result.message || "Servern returnerade ett fel.");
+                statusDiv.style.color = "red";
+            }
+        } catch (err) {
+            statusDiv.innerHTML = "❌ API-anslutning misslyckades.";
+            statusDiv.style.color = "red";
+            console.error("Fetch Error:", err);
+        }
+    }
+</script>

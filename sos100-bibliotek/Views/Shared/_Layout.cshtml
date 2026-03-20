@@ -4,24 +4,25 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>@ViewData["Title"] - sos100_bibliotek</title>
-    <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="~/css/style.css" asp-append-version="true"/>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
-    <link rel="stylesheet" href="~/sos100_bibliotek.styles.css" asp-append-version="true"/>
 </head>
 <body>
 @Html.Partial("_Navbar")
+
 <div class="container">
     <main role="main" class="pb-3">
+        @* Här inuti kommer MyLoans.cshtml att hamna automatiskt! *@
         @RenderBody()
     </main>
 </div>
+
+@Html.Partial("_Footer")
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>
 @await RenderSectionAsync("Scripts", required: false)
-@Html.Partial("_Footer")
 </body>
 </html>

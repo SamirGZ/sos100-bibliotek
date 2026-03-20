@@ -1,5 +1,3 @@
-<!-- Navigationsbar som kan sen läggas in i fler olika Views. -->
-
 <nav class="navbar">
 
     <div class="profilebox pointer" data-url="/">
@@ -7,9 +5,17 @@
     </div>
     
     <div class="namebox pointer">
-        <a class="pointer">Namn - <br>&nbsp;Biblioteket<br></a>
+        <a class="pointer" asp-controller="Home" asp-action="Index">Namn - <br>&nbsp;Biblioteket<br></a>
     </div>
+
+    <button class="navbutton" style="grid-area: 1 / 12 / 1 / 12;">
+        <a asp-controller="Home" asp-action="MyLoans">Mina Lån</a>
+    </button>
     
+    <button class="navbutton" style="grid-area: 1 / 13 / 1 / 13;">
+        <a asp-controller="Notification" asp-action="Index">Notifikationer</a>
+    </button>
+
     <button class="navbutton" style="grid-area: 1 / 14 / 1 / 14;" id="navAboutButton">
         <a asp-controller="Profile" asp-action="Index">Profil</a>
     </button>
@@ -26,9 +32,5 @@
             <a asp-controller="Login" asp-action="Index">Logga In</a>
         </button>
     }
-
-    <button class="navbutton" style="grid-area: 1 / 13 / 1 / 13;">
-        <a asp-controller="Notification" asp-action="Index">Notifikationer</a>
-    </button>
 
 </nav>

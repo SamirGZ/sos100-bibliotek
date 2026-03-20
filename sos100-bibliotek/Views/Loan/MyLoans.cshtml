@@ -1,0 +1,116 @@
+﻿@{
+    ViewData["Title"] = "Mina Lån";
+}
+
+<style>
+    /* Vi matchar designen från din katalog */
+    .loan-container { 
+        padding: 40px 20px; 
+        max-width: 900px; 
+        margin: 0 auto; 
+    }
+    .loan-card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid #e0e0e0;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .return-btn {
+        background-color: #ff5252;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+    .return-btn:hover { background-color: #d32f2f; }
+</style>
+
+<div class="loan-container">
+    <div class="mb-4">
+        <h1>📖 Mina aktiva lån</h1>
+        <p class="text-muted">Här ser du de böcker du har lånat och när de ska lämnas tillbaka.</p>
+        <hr />
+    </div>
+
+    <div id="loans-list">
+        <p>⏳ Laddar dina lån...</p>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", fetchMyLoans);
+
+    async function fetchMyLoans() {
+        const listDiv = document.getElementById('loans-list');
+        
+        try {
+            const response = await fetch('http://localhost:5029/api/loan');
+            const loans = await response.json();
+
+            // Filtrera ut lån som inte är återlämnade
+            const activeLoans = loans.filter(l => !l.isReturned);
+
+            if (activeLoans.length === 0) {
+                listDiv.innerHTML = `
+                    <div style="text-align:center; padding: 50px;">
+                        <p style="font-size: 40px;">📭</p>
+                        <h4>Du har inga aktiva lån just nu.</h4>
+                        <a href="/Home/Index" class="btn btn-primary mt-3">Gå till katalogen</a>
+                    </div>`;
+                return;
+            }
+
+            listDiv.innerHTML = ""; 
+
+            activeLoans.forEach(loan => {
+                const card = `
+                    <div class="loan-card" id="loan-card-${loan.id}">
+                        <div>
+                            <h5 style="margin:0;">Bok-ID: ${loan.bookId}</h5>
+                            <small class="text-muted">Lånedatum: ${new Date(loan.loanDate).toLocaleDateString()}</small><br>
+                            <span class="text-danger" style="font-size: 0.85em; font-weight: bold;">
+                                Återlämnas senast: ${new Date(loan.returnDate).toLocaleDateString()}
+                            </span>
+                        </div>
+                        <button class="return-btn" onclick="returnBook(${loan.id})">
+                            Lämna tillbaka
+                        </button>
+                    </div>`;
+                listDiv.innerHTML += card;
+            });
+        } catch (err) {
+            listDiv.innerHTML = "<div class='alert alert-danger'>Kunde inte nå Loan-API.</div>";
+        }
+    }
+
+    async function returnBook(loanId) {
+        if (!confirm("Vill du lämna tillbaka boken?")) return;
+
+        try {
+            const response = await fetch('http://localhost:5029/api/loan/' + loanId, {
+                method: 'PUT'
+            });
+
+            if (response.ok) {
+                const element = document.getElementById('loan-card-' + loanId);
+                element.style.opacity = '0';
+                setTimeout(() => {
+                    element.remove();
+                    // Om det var sista lånet, ladda om för att visa "tom" vy
+                    if (document.querySelectorAll('.loan-card').length === 0) {
+                        fetchMyLoans();
+                    }
+                }, 300);
+            }
+        } catch (err) {
+            alert("Kunde inte ansluta till servern.");
+        }
+    }
+</script>

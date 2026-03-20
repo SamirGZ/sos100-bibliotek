@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Bibliotek.LoanAPI.Data;
-using Scalar.AspNetCore; // Se till att denna using finns överst!
+using Bibliotek.LoanAPI.Models; // Se till att denna finns för User-klassen
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- HÄR REGISTRERAR JAG ALLA TJÄNSTER ---
+// --- 1. REGISTRERA TJÄNSTER ---
 
 builder.Services.AddDbContext<LoanDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -20,24 +21,50 @@ builder.Services.AddCors(options =>
         });
 });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
+
 builder.Services.AddHttpClient();
-builder.Services.AddOpenApi(); // Denna genererar JSON-dokumentationen
+builder.Services.AddOpenApi(); 
 
 var app = builder.Build(); 
 
-// --- HÄR STÄLLER JAG IN HUR APPEN SKA KÖRAS ---
+// --- 2. KONFIGURERA PIPELINE ---
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    // DENNA RAD SAKNADES: Den mappar upp det grafiska gränssnittet
     app.MapScalarApiReference(); 
 }
 
-app.UseHttpsRedirection();
-app.UseCors("AllowAll");
+app.UseCors("AllowAll"); 
 app.UseAuthorization();
 app.MapControllers();
+
+// --- 3. SEED DATA (Lösningen på Foreign Key Error 19) ---
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<LoanDbContext>();
+    
+    // Skapar databas-tabellerna om de inte finns
+    context.Database.EnsureCreated();
+
+    // Kontrollera om User 1 saknas
+    if (!context.Users.Any(u => u.Id == 1))
+    {
+        context.Users.Add(new User 
+        { 
+            Id = 1, 
+            Username = "Shahin", 
+            Email = "demo@bibliotek.se" 
+        });
+        context.SaveChanges();
+        Console.WriteLine(">>> SEED: Demo-användare med Id 1 har skapats!");
+    }
+}
 
 app.Run();
