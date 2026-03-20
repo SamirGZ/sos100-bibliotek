@@ -2,23 +2,29 @@
 @{
     ViewData["Title"] = "Katalog";
 }
+<link rel="stylesheet" href="~/css/BookCatalogue.css" asp-append-version="true"/>
 <main>
     <h1>Bokkatalog</h1>
     <div class="Catalogue">
         <form asp-action="Index" method="post">
-            <div>
-                @foreach (var Books in Model)
+            @foreach (var Books in Model)
                 {
-                    <p> Titel: @Books.Title</p>
-                    <p> Författare: @Books.Author</p>
-                    <p> Utgiven: @Books.Year</p>
-                    <p> Antal sidor: @Books.Pages</p>
-                    <p> Språk: @Books.Language</p>
-                    <p> Förlag: @Books.Publisher</p>
-                    <p> ISBN: @Books.Isbn</p>
+                    <div class="Books">
+                        <p><strong>Titel:</strong> @Books.Title</p>
+                        <p><strong>Författare:</strong> @Books.Author</p>
+                        <p><strong>Utgiven:</strong> @Books.Year</p>
+                        <p><strong>Antal sidor:</strong> @Books.Pages</p>
+                        <p><strong>Språk:</strong> @Books.Language</p>
+                        <p><strong>Förlag:</strong> @Books.Publisher</p>
+                        <p><strong>ISBN:</strong> @Books.Isbn</p>
+                        
+                        @if (Books.Id == 1)
+                        {
+                            <img class="TheDesignOfEverydayThings" src="~/images/TheDesignOfEverydayThings.jpg" alt="TheDesignOfEverydayThings"/>
+                        }
+                        <button type="submit">Låna boken!</button>
+                    </div>
                 }
-            </div>
         </form>
-        <button type="submit">Låna boken!</button>
     </div>
 </main>
