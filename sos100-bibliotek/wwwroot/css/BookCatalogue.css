@@ -13,14 +13,13 @@
     background-color: white;
 }
 
-.Books img {
-    width: 50px;
-    height: 80px;
-    display: flex;
-    align-items: flex-end;
-}
-
 h1 {
     text-align: center;
     padding-bottom: 10px;
+}
+
+.LoanKnapp {
+    display: block;
+    margin: 0 auto;
+    border-radius: 10px;
 }
