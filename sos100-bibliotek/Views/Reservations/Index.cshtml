@@ -1,0 +1,215 @@
+@model List<sos100_bibliotek.Models.ReservationViewModel>
+
+<div class="reservation-page">
+    <div class="reservation-card">
+        <div class="page-header">
+            <div>
+                <span class="page-label">Bibliotekssystem</span>
+                <h1>Mina reservationer</h1>
+                <p>Här kan du se dina aktuella reservationer och deras status.</p>
+            </div>
+
+            <a asp-controller="Reservations" asp-action="Create" class="create-btn">Ny reservation</a>
+        </div>
+
+        @if (Model == null || !Model.Any())
+        {
+            <div class="empty-state">
+                <h3>Inga reservationer ännu</h3>
+                <p>Du har just nu inga registrerade reservationer.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-wrapper">
+                <table class="reservation-table">
+                    <thead>
+                    <tr>
+                        <th>Bokningsnummer</th>
+                        <th>Objekt</th>
+                        <th>Användare</th>
+                        <th>Bokningsdatum</th>
+                        <th>Status</th>
+                        <th>Åtgärd</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var reservation in Model)
+                    {
+                        var swedishStatus = reservation.Status == "Cancelled" ? "Avbokad" : "Aktiv";
+
+                        <tr>
+                            <td>#@reservation.Id</td>
+                            <td>Objekt @reservation.ItemId</td>
+                            <td>Användare @reservation.UserId</td>
+                            <td>@reservation.ReservationDate.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>
+                                <span class="status-badge @(reservation.Status == "Cancelled" ? "cancelled" : "active")">
+                                    @swedishStatus
+                                </span>
+                            </td>
+                            <td>
+                                <form asp-action="Delete" method="post">
+                                    <input type="hidden" name="id" value="@reservation.Id" />
+                                    <button type="submit" class="delete-btn">Ta bort</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .reservation-page {
+        display: flex;
+        justify-content: center;
+        margin-top: 50px;
+        margin-bottom: 40px;
+        padding: 0 16px;
+    }
+
+    .reservation-card {
+        width: 100%;
+        max-width: 980px;
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 36px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.07);
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+    }
+
+    .page-label {
+        display: inline-block;
+        margin-bottom: 10px;
+        padding: 6px 12px;
+        background-color: #eef2ff;
+        color: #4338ca;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .page-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 38px;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .page-header p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 16px;
+        max-width: 600px;
+    }
+
+    .create-btn {
+        background-color: #4f46e5;
+        color: white;
+        padding: 12px 18px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: 0.2s ease;
+    }
+
+    .create-btn:hover {
+        background-color: #4338ca;
+        color: white;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    .reservation-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .reservation-table thead {
+        background-color: #f3f4f6;
+    }
+
+    .reservation-table th,
+    .reservation-table td {
+        padding: 18px 16px;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 15px;
+    }
+
+    .reservation-table th {
+        font-weight: 700;
+        color: #374151;
+    }
+
+    .reservation-table td {
+        color: #374151;
+    }
+
+    .reservation-table tbody tr:hover {
+        background-color: #fafafa;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .status-badge.active {
+        background-color: #e8f7ee;
+        color: #166534;
+    }
+
+    .status-badge.cancelled {
+        background-color: #fdecec;
+        color: #991b1b;
+    }
+
+    .empty-state {
+        background: #f9fafb;
+        border-radius: 14px;
+        padding: 24px;
+        text-align: center;
+    }
+
+    .empty-state h3 {
+        margin-top: 0;
+        margin-bottom: 8px;
+        color: #1f2937;
+    }
+
+    .empty-state p {
+        margin: 0;
+        color: #6b7280;
+    }
+    .delete-btn {
+        background-color: #dc2626;
+        color: white;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .delete-btn:hover {
+        background-color: #b91c1c;
+    }
+</style>
