@@ -6,7 +6,7 @@ namespace sos100_bibliotek.Controllers;
 
 public class BooksController: Controller
 {
-    private CatalogueService _catalogueService;
+    private readonly CatalogueService _catalogueService;
 
     public BooksController(CatalogueService catalogueService)
     {
@@ -15,8 +15,41 @@ public class BooksController: Controller
 
     public async Task<IActionResult> Index()
     {
-        BookCatalogue[] bookCatalogues = await _catalogueService.GetBookCatalogue();
+        var bookCatalogue= await _catalogueService.GetBookCatalogue();
 
-        return View(bookCatalogues);
+        return View(bookCatalogue);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> EditBook(int Id)
+    {
+        var editBook = await _catalogueService.GetBookById(Id);
+
+        if (editBook == null)
+        {
+            return NotFound();
+        }
+        
+        return View(editBook);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> EditBook(BookCatalogue bookCatalogue)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(bookCatalogue);
+        }
+
+        var Success = await _catalogueService.UpdateBook(bookCatalogue);
+
+        if (!Success)
+        {
+            ModelState.AddModelError("", "Kunde inte uppdatera boken");
+            
+            return View(bookCatalogue);
+        }
+        
+        return RedirectToAction("Index");
     }
 }

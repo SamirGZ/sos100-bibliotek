@@ -5,8 +5,8 @@
 <link rel="stylesheet" href="~/css/BookCatalogue.css" asp-append-version="true"/>
 <main>
     <div class="DbKnappar">
-        <button class="CreateKnapp" type="button">Lägg till en bok</button>
-        <button class="DeleteKnapp" type="button">Ta bort en bok</button>
+        <button class="CreateKnapp" type="submit">Lägg till en bok</button>
+        <button class="DeleteKnapp" type="submit">Ta bort en bok</button>
     </div>
 
     <h1>Bokkatalog</h1>
@@ -23,8 +23,9 @@
                     <p><strong>Förlag:</strong> @Books.Publisher</p>
                     <p><strong>ISBN:</strong> @Books.Isbn</p>
                     
-                    <button class="LoanKnapp" type="button">Låna boken</button>
-                    <button class="UpdateKnapp" type="button">Redigera</button>
+                    <button class="LoanKnapp" type="submit">Låna boken</button>
+                    
+                    <a asp-action="EditBook" asp-route-id="@Books.Id" class="UpdateKnapp">Redigera</a>
                 </div>
             }
         </form>

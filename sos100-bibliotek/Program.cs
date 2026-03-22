@@ -61,9 +61,9 @@ else
 }
 
 // Add HTTPClient to CatalogueService
-builder.Services.AddHttpClient<CatalogueService>((serviceProvider, httpClient) =>
+builder.Services.AddHttpClient<CatalogueService>(client =>
 {
-    httpClient.BaseAddress = new Uri("http://localhost:5149");
+    client.BaseAddress = new Uri("http://localhost:5149/");
 });
 
 var app = builder.Build();
