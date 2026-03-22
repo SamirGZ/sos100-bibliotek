@@ -23,7 +23,7 @@ public class CatalogueService
         return bookcatalogue;
     }
 
-    public async Task<BookCatalogue> GetBookById(int Id)
+    public async Task<BookCatalogue> UpdateBookById(int Id)
     {
         return await _httpClient.GetFromJsonAsync<BookCatalogue>($"api/UpdateBook/{Id}");
     }
@@ -31,6 +31,13 @@ public class CatalogueService
     public async Task<bool> UpdateBook(BookCatalogue bookCatalogue)
     {
         var Respons = await _httpClient.PutAsJsonAsync($"api/UpdateBook/{bookCatalogue.Id}", bookCatalogue);
+        
+        return Respons.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteBookById(int Id)
+    {
+        var Respons = await _httpClient.DeleteAsync($"api/DeleteBook/{Id}");
         
         return Respons.IsSuccessStatusCode;
     }

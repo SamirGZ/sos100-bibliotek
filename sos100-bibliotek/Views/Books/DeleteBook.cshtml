@@ -1,0 +1,50 @@
+﻿@model sos100_bibliotek.Models.BookCatalogue
+
+@{
+    ViewData["Title"] = "Ta bort bok";
+}
+
+<main>
+    <h1>Redigera bok</h1>
+    
+    <form asp-action="DeleteBook" method="post">
+        <input type="hidden" asp-for="Id"/>
+        
+        <div class="UpdateField">
+            <label asp-for="Title"></label>
+            <input asp-for="Title"/>
+        </div>
+        
+        <div class="UpdateField">
+            <label asp-for="Author"></label>
+            <input asp-for="Author"/>
+        </div>
+        
+        <div class="UpdateField">
+            <label asp-for="Year"></label>
+            <input asp-for="Year"/>
+        </div>
+        
+        <div class="UpdateField">
+            <label asp-for="Pages"></label>
+            <input asp-for="Pages"/>
+        </div>
+        
+        <div class="UpdateField">
+            <label asp-for="Language"></label>
+            <input asp-for="Language"/>
+        </div>
+        
+        <div class="UpdateField">
+            <label asp-for="Publisher"></label>
+            <input asp-for="Publisher"/>
+        </div>
+        
+        <div class="UpdateField">
+            <label asp-for="Isbn"></label>
+            <input asp-for="Isbn"/>
+        </div>
+        
+        <button type="submit">Ta bort boken</button>
+    </form>
+</main>

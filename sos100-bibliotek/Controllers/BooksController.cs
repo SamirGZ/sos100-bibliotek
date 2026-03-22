@@ -23,7 +23,7 @@ public class BooksController: Controller
     [HttpGet]
     public async Task<IActionResult> EditBook(int Id)
     {
-        var editBook = await _catalogueService.GetBookById(Id);
+        var editBook = await _catalogueService.UpdateBookById(Id);
 
         if (editBook == null)
         {
@@ -48,6 +48,19 @@ public class BooksController: Controller
             ModelState.AddModelError("", "Kunde inte uppdatera boken");
             
             return View(bookCatalogue);
+        }
+        
+        return RedirectToAction("Index");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteBook(int Id)
+    {
+        var Success = await _catalogueService.DeleteBookById(Id);
+
+        if (!Success)
+        {
+            TempData["ErrorMessage"] = "Kunde inte ta bort boken";
         }
         
         return RedirectToAction("Index");
