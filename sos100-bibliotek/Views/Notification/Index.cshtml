@@ -9,23 +9,26 @@
 
     @if (isAdmin)
     {
-        <h2> Hantera Notifikationer</h2>
+        @if (Context.Session.GetString("Username") == "admin")
+        {
+            <h2> Hantera Notifikationer</h2>
 
-        <div class="card mt-3 mb-4">
-            <div class="card-body">
-                <h5>Skapa notifikation</h5>
-                <form asp-action="Create" method="post" class="d-flex gap-2">
-                    <input type="number" name="userId" class="form-control" placeholder="Användar-ID" required />
-                    <input type="text" name="message" class="form-control" placeholder="Meddelande..." required />
-                    <button type="submit" class="btn btn-primary">Skicka</button>
-                </form>
+            <div class="card mt-3 mb-4">
+                <div class="card-body">
+                    <h5>Skapa notifikation</h5>
+                    <form asp-action="Create" method="post" class="d-flex gap-2">
+                        <input type="number" name="userId" class="form-control" placeholder="Användar-ID" required />
+                        <input type="text" name="message" class="form-control" placeholder="Meddelande..." required />
+                        <button type="submit" class="btn btn-primary">Skicka</button>
+                    </form>
+                </div>
             </div>
-        </div>
 
-        <form asp-action="CheckOverdueLoans" method="post" class="mb-4">
-            <button type="submit" class="btn btn-warning">🔍 Kontrollera försenade lån</button>
-        </form>
-
+            <form asp-action="CheckOverdueLoans" method="post" class="mb-4">
+                <button type="submit" class="btn btn-warning">🔍 Kontrollera försenade lån</button>
+            </form>
+        }
+        
         <h5>Alla notifikationer</h5>
         @if (!Model.Any())
         {

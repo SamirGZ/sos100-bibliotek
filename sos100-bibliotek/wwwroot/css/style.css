@@ -33,22 +33,41 @@ a {
     text-indent: 20px;
 }
 
+.namebox a {
+    color: #182545;
+    font-size: 50px;
+    font-weight: 800;
+    transition: color 100ms linear;
+}
+
+.namebox a:hover {
+    color: #6f42c1;
+}
+
+.profilebox a {
+    cursor: pointer;
+}
+
 .navbutton {
     background: transparent;
     border: 0px solid #f8f9fa;
     border-radius: 7px;
-    color: #333333;
     cursor: pointer;
+    font-family: "Inter", sans-serif;
+    padding: 0 1rem;
+    text-align: center;
+    transition: color 100ms linear;
+}
+
+.navbutton a {
+    color: #333333;
     font-family: "Inter", sans-serif;
     font-size: 26px;
     font-weight: 700;
-    padding: 0 1rem;
-    text-align: center;
-    transition: linear;
-    transition-duration: 100ms;
+    transition: color 100ms linear;
 }
 
-.navbutton:hover {
+.navbutton:hover a {
     color: #6f42c1;
 }
 
