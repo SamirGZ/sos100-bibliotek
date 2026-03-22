@@ -1,22 +1,36 @@
 ### Variabler för att slippa ändra portar överallt
-@LoanAPI = https://localhost:7058
+@LoanAPI = http://localhost:5029
 @UserAPI = http://localhost:5027
 @CatalogAPI = http://localhost:5149
 @ReservationAPI = http://localhost:5115
 @NotificationAPI = http://localhost:5235
 @ApiKey = Shahin415
 
-### STEG 1: Skapa en användare hos User (Port 5027)
-POST {{UserAPI}}/api/user
+### STEG 0a: Lägg till boken i Catalog
+# OBS: Deras controller har ingen "api/" i sin route, så vi anropar direkt /books
+POST {{CatalogAPI}}/books
 Content-Type: application/json
 
 {
-  "username": "Shahin Test",
+  "title": "Testbok",
+  "author": "Shahin"
+}
+
+### STEG 0b: Se till att boken INTE är reserverad
+GET {{ReservationAPI}}/api/reservation/check/1
+
+
+### STEG 1: Registrera användaren i User-API (Port 5027)
+POST {{UserAPI}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "Shahin",
+  "password": "123",
   "email": "shahin@skola.se"
 }
 
-### STEG 2: Skapa ett lån i Loan API (Port 7058)
-# Nu skapas även en första rad i tabellen LoanEvents automatiskt
+### STEG 2: Skapa ett lån i Loan API (Port 5029)
 POST {{LoanAPI}}/api/loan
 Content-Type: application/json
 X-Api-Key: {{ApiKey}}
@@ -27,23 +41,20 @@ X-Api-Key: {{ApiKey}}
 }
 
 ### STEG 3: Se alla lån och deras historik
-# Här ser du att varje lån har en lista som heter "history" tack vare vår nya tabellkoppling
 GET {{LoanAPI}}/api/loan
 
 ### STEG 4: Kontrollera om notisen skickades (Port 5235)
-GET {{NotificationAPI}}/api/notification
+# OBS: Deras controller heter Notifications (plural)
+GET {{NotificationAPI}}/api/notifications
 
 ### STEG 5: Lämna tillbaka en bok 
-# Detta uppdaterar lånet OCH skapar en ny rad i historik-tabellen
 PUT {{LoanAPI}}/api/loan/1
 Content-Type: application/json
 
 ### STEG 6: Verifiera att historiken har uppdaterats
-# Nu ska du se två händelser i historik-listan för lånet (Skapat + Återlämnat)
 GET {{LoanAPI}}/api/loan
 
 ### STEG 7: Testa spärren 
-# Vi testar med bookId 1 igen (om den inte är återlämnad än)
 POST {{LoanAPI}}/api/loan
 Content-Type: application/json
 X-Api-Key: {{ApiKey}}

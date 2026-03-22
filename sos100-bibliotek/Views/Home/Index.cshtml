@@ -1,8 +1,17 @@
-@{
+﻿@{
     ViewData["Title"] = "Home Page";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <a class="katalog-title">Sök i katalogen</a>
+    <section class="search">
+        <input type="search" id="searchInput" placeholder="Sök böcker, rapporter och andra...">
+        <button id="searchButton">
+            <a asp-controller="Books" asp-action="Index">Sök</a>
+        </button>
+    </section>
 </div>
+<head>
+    <meta charset="utf-8">
+    <title>Min Filmsida Startsida</title>
+</head>

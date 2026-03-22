@@ -1,52 +1,97 @@
 @model List<sos100_bibliotek.Services.NotificationDto>
 
-<div class="content-wrapper">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>🔔 Notifikationer</h2>
-        <form asp-action="CheckOverdueLoans" method="post">
-            <button type="submit" class="btn btn-warning">
-                🔍 Kontrollera försenade lån
-            </button>
-        </form>
-    </div>
+@{
+    var role = Context.Session.GetString("Role") ?? "user";
+    var isAdmin = role == "admin";
+}
 
-    @if (!Model.Any())
+<div class="content-wrapper" style="min-height: 60vh; padding: 2rem;">
+
+    @if (isAdmin)
     {
-        <div class="alert alert-info">Inga notifikationer just nu.</div>
-    }
-    else
-    {
-        <div class="list-group">
-            @foreach (var n in Model.OrderByDescending(x => x.CreatedAt))
-            {
-                <div class="list-group-item d-flex justify-content-between align-items-center @(n.IsRead ? "text-muted" : "fw-bold")">
-                    <div>
-                        <p class="mb-1">@n.Message</p>
-                        <small class="text-muted">@n.CreatedAt.ToString("g")</small>
-                        @if (n.IsRead)
-                        {
-                            <span class="badge bg-success ms-2">Läst</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-warning ms-2">Oläst</span>
-                        }
-                    </div>
-                    <div class="d-flex gap-2">
-                        @if (!n.IsRead)
-                        {
-                            <form asp-action="MarkAsRead" method="post">
-                                <input type="hidden" name="id" value="@n.Id" />
-                                <button type="submit" class="btn btn-sm btn-outline-success">✔ Markera som läst</button>
-                            </form>
-                        }
+        <h2> Hantera Notifikationer</h2>
+
+        <div class="card mt-3 mb-4">
+            <div class="card-body">
+                <h5>Skapa notifikation</h5>
+                <form asp-action="Create" method="post" class="d-flex gap-2">
+                    <input type="number" name="userId" class="form-control" placeholder="Användar-ID" required />
+                    <input type="text" name="message" class="form-control" placeholder="Meddelande..." required />
+                    <button type="submit" class="btn btn-primary">Skicka</button>
+                </form>
+            </div>
+        </div>
+
+        <form asp-action="CheckOverdueLoans" method="post" class="mb-4">
+            <button type="submit" class="btn btn-warning">🔍 Kontrollera försenade lån</button>
+        </form>
+
+        <h5>Alla notifikationer</h5>
+        @if (!Model.Any())
+        {
+            <div class="alert alert-info">Inga notifikationer just nu.</div>
+        }
+        else
+        {
+            <div class="list-group">
+                @foreach (var n in Model.OrderByDescending(x => x.CreatedAt))
+                {
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="mb-1">@n.Message</p>
+                            <small class="text-muted">Användare: @n.UserId | @n.CreatedAt.ToString("g")</small>
+                        </div>
                         <form asp-action="Delete" method="post">
                             <input type="hidden" name="id" value="@n.Id" />
                             <button type="submit" class="btn btn-sm btn-outline-danger">🗑 Ta bort</button>
                         </form>
                     </div>
-                </div>
-            }
-        </div>
+                }
+            </div>
+        }
     }
-</div>
+    else
+    {
+        <h2>🔔 Mina Notifikationer</h2>
+
+        @if (!Model.Any())
+        {
+            <div class="alert alert-info">Inga notifikationer just nu.</div>
+        }
+        else
+        {
+            <div class="list-group mt-3">
+                @foreach (var n in Model.OrderByDescending(x => x.CreatedAt))
+                {
+                    <div class="list-group-item d-flex justify-content-between align-items-center @(n.IsRead ? "text-muted" : "fw-bold")">
+                        <div>
+                            <p class="mb-1">@n.Message</p>
+                            <small class="text-muted">@n.CreatedAt.ToString("g")</small>
+                            @if (n.IsRead)
+                            {
+                                <span class="badge bg-success ms-2">Läst</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning ms-2">Oläst</span>
+                            }
+                        </div>
+                        <div class="d-flex gap-2">
+                            @if (!n.IsRead)
+                            {
+                                <form asp-action="MarkAsRead" method="post">
+                                    <input type="hidden" name="id" value="@n.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-success">✔ Markera som läst</button>
+                                </form>
+                            }
+                            <form asp-action="Delete" method="post">
+                                <input type="hidden" name="id" value="@n.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">🗑 Ta bort</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div> 

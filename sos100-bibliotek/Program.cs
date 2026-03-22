@@ -60,6 +60,12 @@ else
     });
 }
 
+// Add HTTPClient to CatalogueService
+builder.Services.AddHttpClient<CatalogueService>((serviceProvider, httpClient) =>
+{
+    httpClient.BaseAddress = new Uri("http://localhost:5149");
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -12,10 +12,19 @@ public class NotificationController : Controller
         _service = service;
     }
 
+    [HttpGet]
     public async Task<IActionResult> Index()
     {
+        HttpContext.Session.SetString("Role", "admin");
         var notifications = await _service.GetNotificationsAsync();
         return View(notifications);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create(int userId, string message)
+    {
+        await _service.CreateNotificationAsync(message, userId);
+        return RedirectToAction(nameof(Index));
     }
 
     [HttpPost]
