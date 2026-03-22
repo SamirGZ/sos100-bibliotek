@@ -45,15 +45,29 @@ namespace Bibliotek.LoanAPI.Controllers
         {
             if (request == null) return BadRequest(new { message = "Ingen data mottogs." });
 
-            var client = _httpClientFactory.CreateClient();
+            // --- NYTT: VERIFIERA ANVÄNDARE MOT USER-API ---
+            var userClient = _httpClientFactory.CreateClient("UserClient");
+            try 
+            {
+                // Vi anropar den nya endpointen i UserAPI (se steg 3 nedan)
+                var userCheck = await userClient.GetAsync($"/api/auth/user-by-id/{request.UserId}");
+        
+                if (!userCheck.IsSuccessStatusCode)
+                {
+                    return BadRequest(new { message = $"Användare {request.UserId} hittades inte i UserAPI. Lån nekat." });
+                }
+            }
+            catch (HttpRequestException)
+            {
+                return StatusCode(503, new { message = "UserAPI är nere. Kan inte verifiera användaren." });
+            }
 
-            // 1. Lokal kontroll: Är boken redan utlånad?
+            // --- FORTSÄTT SOM VANLIGT ---
             var isBookOut = await _context.Loans
                 .AnyAsync(l => l.BookId == request.BookId && !l.IsReturned);
 
             if (isBookOut) return BadRequest(new { message = "Boken är redan utlånad." });
 
-            // 2. Skapa låneobjektet
             var newLoan = new Loan
             {
                 BookId = request.BookId,
@@ -61,41 +75,18 @@ namespace Bibliotek.LoanAPI.Controllers
                 LoanDate = DateTime.Now,
                 ReturnDate = DateTime.Now.AddDays(30),
                 IsReturned = false,
-                History = new List<LoanEvent>() // Viktigt: Säkerställ att listan finns
+                History = new List<LoanEvent>()
             };
 
-            newLoan.History.Add(new LoanEvent 
-            { 
-                Description = $"Lån skapat för bok {request.BookId}.",
+            newLoan.History.Add(new LoanEvent { 
+                Description = $"Lån skapat (Verifierat mot UserAPI).",
                 EventDate = DateTime.Now 
             });
 
-            try 
-            {
-                _context.Loans.Add(newLoan);
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                // Om databasen kraschar, skicka ett JSON-fel istället för HTML
-                return StatusCode(500, new { message = "Kunde inte spara i databasen: " + ex.Message });
-            }
+            _context.Loans.Add(newLoan);
+            await _context.SaveChangesAsync();
 
-            // 3. Skicka notis (tyst i bakgrunden)
-            try
-            {
-                var notifyUrl = _config["ExternalServices:NotificationApi"]?.TrimEnd('/');
-                if (!string.IsNullOrEmpty(notifyUrl))
-                {
-                    await client.PostAsJsonAsync(notifyUrl, new { 
-                        UserId = newLoan.UserId, 
-                        Message = $"Lån bekräftat för bok {newLoan.BookId}." 
-                    });
-                }
-            }
-            catch { /* Vi ignorerar notisfel för att inte avbryta lånet */ }
-
-            return Ok(new { message = "Lånet har sparats i databasen!", loanId = newLoan.Id });
+            return Ok(new { message = "Lånet sparat och verifierat!", loanId = newLoan.Id });
         }
 
         [HttpPut("{id}")]

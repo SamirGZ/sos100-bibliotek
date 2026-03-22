@@ -64,4 +64,10 @@ public class UserService : IUserService
         await _context.SaveChangesAsync();
         return true;
     }
+    
+    public async Task<User?> GetUserByIdAsync(int id)
+    {
+        // Vi letar upp användaren i databasen baserat på ID
+        return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+    }
 }
