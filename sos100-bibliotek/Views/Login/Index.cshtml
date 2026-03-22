@@ -4,7 +4,6 @@
 
 <div class="login-wrapper">
     <form asp-action="Index" asp-controller="Login" method="post" class="login-form">
-
         <p class="login-title">Logga In</p>
 
         <label for="username">Användarnamn:</label>
@@ -15,11 +14,26 @@
 
         <input type="submit" value="Logga In">
 
-        <p class="login-error">@ViewBag.Error</p>
+        @if (ViewBag.Error != null)
+        {
+            <p class="login-error" style="color: red;">@ViewBag.Error</p>
+        }
         
         <p class="login-register">
             Inget konto? <a class="textbutton" asp-controller="Register" asp-action="Index">Skapa konto</a>
         </p>
-
     </form>
 </div>
+
+@if (ViewBag.UserId != null)
+{
+    <script>
+        // Detta körs bara om inloggningen lyckades i Controllern
+        // Vi sparar ner ID (t.ex. 6) och användarnamn i webbläsarens minne
+        localStorage.setItem('currentUserId', '@ViewBag.UserId');
+        localStorage.setItem('username', '@ViewBag.Username');
+
+        // Nu när ID:t är sparat skickar vi användaren till katalogen
+        window.location.href = '@Url.Action("Index", "Home")';
+    </script>
+}

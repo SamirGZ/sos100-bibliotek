@@ -1,4 +1,7 @@
-﻿public class UserApiService
+﻿using System.Net.Http.Json;
+using sos100_bibliotek.Models; // Se till att du har UserResponse-klassen i denna mapp
+
+public class UserApiService
 {
     private readonly HttpClient _httpClient;
 
@@ -7,12 +10,21 @@
         _httpClient = httpClient;
     }
 
-    public async Task<bool> LoginAsync(string username, string password)
+    // UPPDATERAD: Returnerar nu objektet så att Controllern får tag i ID:t
+    public async Task<UserResponse?> LoginAsync(string username, string password)
     {
         var payload = new { username, password };
         var response = await _httpClient.PostAsJsonAsync("/api/auth/login", payload);
-        return response.IsSuccessStatusCode;
+        
+        if (response.IsSuccessStatusCode)
+        {
+            // Här läser vi ut ID och Username som din klasskamrats API skickar
+            return await response.Content.ReadFromJsonAsync<UserResponse>();
+        }
+        return null;
     }
+
+    // --- HÄRIFRÅN OCH NEDÅT ÄR ALLT ORÖRT FÖR DIN KLASSKAMRAT ---
 
     public async Task<bool> RegisterAsync(string username, string password, string email)
     {

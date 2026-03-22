@@ -17,14 +17,25 @@ public class LoginController : Controller
     [HttpPost]
     public async Task<IActionResult> Index(string username, string password)
     {
-        bool success = await _userApiService.LoginAsync(username, password);
-        if (!success)
+        // Vi hämtar hela användaren från UserAPI
+        var user = await _userApiService.LoginAsync(username, password);
+        
+        if (user == null)
         {
             ViewBag.Error = "Ogiltigt användarnamn eller lösenord.";
             return View();
         }
 
-        HttpContext.Session.SetString("Username", username);
-        return RedirectToAction("Index", "Home");
+        // Spara i Session för C#-sidan
+        HttpContext.Session.SetString("Username", user.Username);
+        HttpContext.Session.SetInt32("UserId", user.Id);
+
+        // Skicka med ID och namn till vyn så JavaScript kan spara dem i localStorage
+        ViewBag.UserId = user.Id;
+        ViewBag.Username = user.Username;
+
+        // VIKTIGT: Vi returnerar View() istället för Redirect så att 
+        // JavaScript-koden i Login.cshtml hinner köra och spara ID:t!
+        return View();
     }
 }

@@ -59,7 +59,20 @@ ViewData["Title"] = "Katalog";
         statusDiv.innerHTML = "⏳ Behandlar lån...";
         statusDiv.style.color = "blue";
 
-        const currentUserId = localStorage.getItem('currentUserId') || 1;
+        // HÄMTA ID DYNAMISKT - Ingen fallback till "1"
+        const currentUserId = localStorage.getItem('currentUserId');
+
+        if (!currentUserId) {
+            statusDiv.innerHTML = "❌ Fel: Du måste logga in först!";
+            statusDiv.style.color = "red";
+            alert("Vänligen logga in för att kunna låna böcker.");
+            return;
+        }
+
+        const payload = {
+            BookId: parseInt(bookId),
+            UserId: parseInt(currentUserId) // Nu skickas ID 6 om du är inloggad som Shahin
+        };
 
         try {
             const response = await fetch('http://localhost:5029/api/loan', {
@@ -67,34 +80,23 @@ ViewData["Title"] = "Katalog";
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    BookId: parseInt(bookId),
-                    UserId: parseInt(currentUserId)
-                })
+                body: JSON.stringify(payload)
             });
 
-            // Läs svaret som JSON om det går, annars som text
-            let result;
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.indexOf("application/json") !== -1) {
-                result = await response.json();
-            } else {
-                result = { message: await response.text() };
-            }
+            const result = await response.json();
 
             if (response.ok) {
                 statusDiv.innerHTML = "✅ " + (result.message || "Lånet sparat!");
                 statusDiv.style.color = "green";
-                alert("Framgång! Kolla din LoanDatabase nu.");
+                // Skicka användaren till "Mina lån" efter 2 sekunder för bättre UX
+                setTimeout(() => { window.location.href = '/Home/MyLoans'; }, 2000);
             } else {
-                console.error("Server Error:", result);
-                statusDiv.innerHTML = "❌ Fel: " + (result.message || "Servern returnerade ett fel.");
+                statusDiv.innerHTML = "❌ Fel: " + (result.message || "Något gick fel.");
                 statusDiv.style.color = "red";
             }
         } catch (err) {
-            statusDiv.innerHTML = "❌ API-anslutning misslyckades.";
+            statusDiv.innerHTML = "❌ Kunde inte nå Loan-API (Port 5029).";
             statusDiv.style.color = "red";
-            console.error("Fetch Error:", err);
         }
     }
 </script>

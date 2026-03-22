@@ -70,4 +70,5 @@ public class UserService : IUserService
         // Vi letar upp användaren i databasen baserat på ID
         return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
     }
+    
 }

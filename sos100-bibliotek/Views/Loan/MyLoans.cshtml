@@ -3,7 +3,6 @@
 }
 
 <style>
-    /* Vi matchar designen från din katalog */
     .loan-container { 
         padding: 40px 20px; 
         max-width: 900px; 
@@ -28,14 +27,24 @@
         border-radius: 6px;
         cursor: pointer;
         font-weight: 600;
+        transition: 0.2s;
     }
     .return-btn:hover { background-color: #d32f2f; }
+    .user-badge {
+        background: #f0f0f0;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.8em;
+        margin-bottom: 10px;
+        display: inline-block;
+    }
 </style>
 
 <div class="loan-container">
     <div class="mb-4">
+        <div id="user-info"></div>
         <h1>📖 Mina aktiva lån</h1>
-        <p class="text-muted">Här ser du de böcker du har lånat och när de ska lämnas tillbaka.</p>
+        <p class="text-muted">Här ser du dina böcker och när de ska lämnas tillbaka.</p>
         <hr />
     </div>
 
@@ -45,72 +54,85 @@
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", fetchMyLoans);
+    // Körs när sidan laddas
+    document.addEventListener("DOMContentLoaded", () => {
+        displayUserInfo();
+        fetchMyLoans();
+    });
+
+    function displayUserInfo() {
+        const userId = localStorage.getItem("currentUserId");
+        const username = localStorage.getItem("username") || "Användare";
+        const infoDiv = document.getElementById('user-info');
+
+        if (userId) {
+            infoDiv.innerHTML = `<span class="user-badge">Inloggad som: <strong>${username}</strong> (ID: ${userId})</span>`;
+        } else {
+            infoDiv.innerHTML = `<span class="user-badge" style="background:#ffebee; color:#c62828;">Inte inloggad</span>`;
+        }
+    }
 
     async function fetchMyLoans() {
         const listDiv = document.getElementById('loans-list');
-        
+        const currentUserId = localStorage.getItem("currentUserId");
+
+        if (!currentUserId) {
+            listDiv.innerHTML = `
+                <div class="alert alert-warning">
+                    <h4>Logga in för att se dina lån</h4>
+                    <p>Vi hittar inget aktivt användar-ID i webbläsaren.</p>
+                    <a href="/Login" class="btn btn-primary mt-2">Gå till inloggning</a>
+                </div>`;
+            return;
+        }
+
         try {
             const response = await fetch('http://localhost:5029/api/loan');
+            if (!response.ok) throw new Error();
+            
             const loans = await response.json();
 
-            // Filtrera ut lån som inte är återlämnade
-            const activeLoans = loans.filter(l => !l.isReturned);
+            // Filtrera: Endast lån för just detta UserId (ID 6 t.ex.) som inte är klara
+            const myLoans = loans.filter(l => l.userId == currentUserId && !l.isReturned);
 
-            if (activeLoans.length === 0) {
-                listDiv.innerHTML = `
-                    <div style="text-align:center; padding: 50px;">
-                        <p style="font-size: 40px;">📭</p>
-                        <h4>Du har inga aktiva lån just nu.</h4>
-                        <a href="/Home/Index" class="btn btn-primary mt-3">Gå till katalogen</a>
-                    </div>`;
+            if (myLoans.length === 0) {
+                listDiv.innerHTML = `<div class="text-center mt-5"><h4>Du har inga aktiva lån.</h4></div>`;
                 return;
             }
 
             listDiv.innerHTML = ""; 
-
-            activeLoans.forEach(loan => {
-                const card = `
+            myLoans.forEach(loan => {
+                listDiv.innerHTML += `
                     <div class="loan-card" id="loan-card-${loan.id}">
                         <div>
-                            <h5 style="margin:0;">Bok-ID: ${loan.bookId}</h5>
-                            <small class="text-muted">Lånedatum: ${new Date(loan.loanDate).toLocaleDateString()}</small><br>
+                            <h5 style="margin:0;">📘 Bok-ID: ${loan.bookId}</h5>
+                            <small class="text-muted">Utlånad: ${new Date(loan.loanDate).toLocaleDateString()}</small><br>
                             <span class="text-danger" style="font-size: 0.85em; font-weight: bold;">
-                                Återlämnas senast: ${new Date(loan.returnDate).toLocaleDateString()}
+                                📅 Deadline: ${new Date(loan.returnDate).toLocaleDateString()}
                             </span>
                         </div>
-                        <button class="return-btn" onclick="returnBook(${loan.id})">
-                            Lämna tillbaka
-                        </button>
+                        <button class="return-btn" onclick="returnBook(${loan.id})">Lämna tillbaka</button>
                     </div>`;
-                listDiv.innerHTML += card;
             });
         } catch (err) {
-            listDiv.innerHTML = "<div class='alert alert-danger'>Kunde inte nå Loan-API.</div>";
+            listDiv.innerHTML = `<div class='alert alert-danger'>Kunde inte kontakta LoanAPI.</div>`;
         }
     }
 
     async function returnBook(loanId) {
-        if (!confirm("Vill du lämna tillbaka boken?")) return;
+        if(!confirm("Vill du lämna tillbaka boken?")) return;
 
         try {
-            const response = await fetch('http://localhost:5029/api/loan/' + loanId, {
+            const response = await fetch(`http://localhost:5029/api/loan/${loanId}`, {
                 method: 'PUT'
             });
 
             if (response.ok) {
-                const element = document.getElementById('loan-card-' + loanId);
-                element.style.opacity = '0';
-                setTimeout(() => {
-                    element.remove();
-                    // Om det var sista lånet, ladda om för att visa "tom" vy
-                    if (document.querySelectorAll('.loan-card').length === 0) {
-                        fetchMyLoans();
-                    }
-                }, 300);
+                alert("Tack! Boken är återlämnad.");
+                fetchMyLoans(); 
             }
         } catch (err) {
-            alert("Kunde inte ansluta till servern.");
+            alert("Kunde inte genomföra återlämningen.");
         }
     }
 </script>
