@@ -1,33 +1,33 @@
-﻿@model IEnumerable<sos100_bibliotek.Models.BookCatalogue>
+﻿@using sos100_bibliotek.Controllers
+@model IEnumerable<sos100_bibliotek.Models.BookCatalogue>
 @{
     ViewData["Title"] = "Katalog";
 }
 <link rel="stylesheet" href="~/css/BookCatalogue.css" asp-append-version="true"/>
 <main>
-    <div class="DbKnappar">
-        <button class="CreateKnapp" type="submit">Lägg till en bok</button>
-        <button class="DeleteKnapp" type="submit">Ta bort en bok</button>
-    </div>
-
+    <button class="CreateKnapp" type="submit">Lägg till en bok</button>
+    
     <h1>Bokkatalog</h1>
     <div class="Catalogue">
-        <form asp-action="Index" method="post">
-            @foreach (var Books in Model)
-            {
-                <div class="Books">
-                    <p><strong>Titel:</strong> @Books.Title</p>
-                    <p><strong>Författare:</strong> @Books.Author</p>
-                    <p><strong>Utgiven:</strong> @Books.Year</p>
-                    <p><strong>Antal sidor:</strong> @Books.Pages</p>
-                    <p><strong>Språk:</strong> @Books.Language</p>
-                    <p><strong>Förlag:</strong> @Books.Publisher</p>
-                    <p><strong>ISBN:</strong> @Books.Isbn</p>
+        @foreach (var Books in Model)
+        {
+            <div class="Books">
+                <p><strong>Titel:</strong> @Books.Title</p>
+                <p><strong>Författare:</strong> @Books.Author</p>
+                <p><strong>Utgiven:</strong> @Books.Year</p>
+                <p><strong>Antal sidor:</strong> @Books.Pages</p>
+                <p><strong>Språk:</strong> @Books.Language</p>
+                <p><strong>Förlag:</strong> @Books.Publisher</p>
+                <p><strong>ISBN:</strong> @Books.Isbn</p>
+
+                <button class="LoanKnapp" type="submit">Låna boken</button>
+
+                <a asp-action="EditBook" asp-route-id="@Books.Id" class="UpdateKnapp">Redigera</a>
                     
-                    <button class="LoanKnapp" type="submit">Låna boken</button>
-                    
-                    <a asp-action="EditBook" asp-route-id="@Books.Id" class="UpdateKnapp">Redigera</a>
-                </div>
-            }
-        </form>
+                <form asp-action="DeleteBook" asp-route-id="@Books.Id" method="post">
+                    <button class="DeleteKnapp" type="submit">Ta bort boken</button>
+                </form>
+            </div>
+        }
     </div>
 </main>
