@@ -1,0 +1,28 @@
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="login-wrapper">
+    <form asp-action="Index" asp-controller="Register" method="post" class="login-form">
+
+        <p class="login-title">Skapa Konto</p>
+
+        <label for="username">Användarnamn:</label>
+        <input type="text" id="username" name="username">
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email">
+
+        <label for="password">Lösenord:</label>
+        <input type="password" id="password" name="password">
+
+        <input type="submit" value="Skapa Konto">
+
+        <p class="login-error">@ViewBag.Error</p>
+
+        <p class="login-register">
+            Har du redan ett konto? <a class="textbutton" asp-controller="Login" asp-action="Index">Logga in</a>
+        </p>
+
+    </form>
+</div>

@@ -7,4 +7,8 @@
         <RootNamespace>sos100_bibliotek</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Scalar.AspNetCore" Version="2.13.11" />
+    </ItemGroup>
+
 </Project>

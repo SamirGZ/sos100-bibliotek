@@ -1,8 +1,18 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sos100-bibliotek", "sos100-bibliotek\sos100-bibliotek.csproj", "{464FEB9B-8453-4C4A-BE99-56039E0F3881}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReservationAPI", "ReservationAPI\ReservationAPI.csproj", "{0A83B39B-2C63-47C8-9740-DC2E93D8B181}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bibliotek.LoanAPI", "Bibliotek.LoanAPI\Bibliotek.LoanAPI.csproj", "{BCE7579D-232A-4B90-88F9-A4FEC0C43A12}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sos100-UserAPI", "sos100-UserAPI\sos100-UserAPI.csproj", "{70123787-52AE-4478-A7CD-2BF3633B6B0B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catalogue-service", "Catalogue-service\Catalogue-service.csproj", "{247F477B-5FB3-4C7E-A242-061CDA64F4E4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationsService", "NotificationsService\NotificationsService.csproj", "{CEB24495-D5A2-4D7B-A892-9B12996D6959}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,5 +28,21 @@ Global
 		{0A83B39B-2C63-47C8-9740-DC2E93D8B181}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A83B39B-2C63-47C8-9740-DC2E93D8B181}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A83B39B-2C63-47C8-9740-DC2E93D8B181}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCE7579D-232A-4B90-88F9-A4FEC0C43A12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCE7579D-232A-4B90-88F9-A4FEC0C43A12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCE7579D-232A-4B90-88F9-A4FEC0C43A12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCE7579D-232A-4B90-88F9-A4FEC0C43A12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70123787-52AE-4478-A7CD-2BF3633B6B0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70123787-52AE-4478-A7CD-2BF3633B6B0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70123787-52AE-4478-A7CD-2BF3633B6B0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70123787-52AE-4478-A7CD-2BF3633B6B0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{247F477B-5FB3-4C7E-A242-061CDA64F4E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{247F477B-5FB3-4C7E-A242-061CDA64F4E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{247F477B-5FB3-4C7E-A242-061CDA64F4E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{247F477B-5FB3-4C7E-A242-061CDA64F4E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEB24495-D5A2-4D7B-A892-9B12996D6959}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEB24495-D5A2-4D7B-A892-9B12996D6959}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEB24495-D5A2-4D7B-A892-9B12996D6959}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEB24495-D5A2-4D7B-A892-9B12996D6959}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,0 +1,65 @@
+### Variabler för att slippa ändra portar överallt
+@LoanAPI = http://localhost:5029
+@UserAPI = http://localhost:5027
+@CatalogAPI = http://localhost:5149
+@ReservationAPI = http://localhost:5115
+@NotificationAPI = http://localhost:5235
+@ApiKey = Shahin415
+
+### STEG 0a: Lägg till boken i Catalog
+# OBS: Deras controller har ingen "api/" i sin route, så vi anropar direkt /books
+POST {{CatalogAPI}}/books
+Content-Type: application/json
+
+{
+  "title": "Testbok",
+  "author": "Shahin"
+}
+
+### STEG 0b: Se till att boken INTE är reserverad
+GET {{ReservationAPI}}/api/reservation/check/1
+
+
+### STEG 1: Registrera användaren i User-API (Port 5027)
+POST {{UserAPI}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "Shahin",
+  "password": "123",
+  "email": "shahin@skola.se"
+}
+
+### STEG 2: Skapa ett lån i Loan API (Port 5029)
+POST {{LoanAPI}}/api/loan
+Content-Type: application/json
+X-Api-Key: {{ApiKey}}
+
+{
+  "bookId": 1,
+  "userId": 1
+}
+
+### STEG 3: Se alla lån och deras historik
+GET {{LoanAPI}}/api/loan
+
+### STEG 4: Kontrollera om notisen skickades (Port 5235)
+# OBS: Deras controller heter Notifications (plural)
+GET {{NotificationAPI}}/api/notifications
+
+### STEG 5: Lämna tillbaka en bok 
+PUT {{LoanAPI}}/api/loan/1
+Content-Type: application/json
+
+### STEG 6: Verifiera att historiken har uppdaterats
+GET {{LoanAPI}}/api/loan
+
+### STEG 7: Testa spärren 
+POST {{LoanAPI}}/api/loan
+Content-Type: application/json
+X-Api-Key: {{ApiKey}}
+
+{
+  "bookId": 1,
+  "userId": 2
+}
