@@ -27,13 +27,12 @@
                     <button class="LoanKnapp" type="submit">Låna boken</button>
                     
                     @if (Context.Session.GetString("Username") == "admin")
-                    { 
-                        <a asp-action="EditBook" asp-route-id="@Books.Id" class="UpdateKnapp">Redigera</a>
 
-                        <form asp-action="DeleteBook" asp-route-id="@Books.Id" method="post">
-                            <button class="DeleteKnapp" type="submit">Ta bort boken</button>
-                        </form>
-                    }
+                    <a asp-action="EditBook" asp-route-id="@Books.Id" class="UpdateKnapp">Redigera</a>
+                    
+                    <form asp-action="DeleteBook" asp-route-id="@Books.Id" method="post">
+                        <button class="DeleteKnapp" type="submit">Ta bort boken</button>
+                    </form>
                 </div> 
             }
         </div>
