@@ -41,4 +41,11 @@ public class CatalogueService
         
         return Respons.IsSuccessStatusCode;
     }
+
+    public async Task<bool> CreateBook(BookCatalogue bookCatalogue)
+    {
+        var Respons = await _httpClient.PostAsJsonAsync($"api/CreateBook", bookCatalogue);
+        
+        return Respons.IsSuccessStatusCode;
+    }
 }
