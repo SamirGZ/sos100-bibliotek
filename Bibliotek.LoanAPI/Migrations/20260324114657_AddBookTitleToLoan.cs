@@ -5,24 +5,25 @@
 namespace Bibliotek.LoanAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateModelsForIntegration : Migration
+    public partial class AddBookTitleToLoan : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "Name",
-                table: "Users",
-                newName: "Username");
+            migrationBuilder.AddColumn<string>(
+                name: "BookTitle",
+                table: "Loans",
+                type: "TEXT",
+                nullable: false,
+                defaultValue: "");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "Username",
-                table: "Users",
-                newName: "Name");
+            migrationBuilder.DropColumn(
+                name: "BookTitle",
+                table: "Loans");
         }
     }
 }

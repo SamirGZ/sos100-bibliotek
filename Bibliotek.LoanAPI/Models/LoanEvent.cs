@@ -1,15 +1,16 @@
-﻿using System;
+﻿using System.Text.Json.Serialization; // Lägg till denna using!
 
 namespace Bibliotek.LoanAPI.Models
 {
     public class LoanEvent
     {
         public int Id { get; set; }
-        public int LoanId { get; set; } // Koppling till huvudlånet
-        public string Description { get; set; } = string.Empty;
-        public DateTime EventDate { get; set; } = DateTime.Now;
+        public string Description { get; set; }
+        public DateTime EventDate { get; set; }
 
-        // Navigation property för Entity Framework
-        public Loan? Loan { get; set; }
+        public int LoanId { get; set; }
+
+        [JsonIgnore] // <--- LÄGG TILL DENNA RAD!
+        public Loan Loan { get; set; } 
     }
 }

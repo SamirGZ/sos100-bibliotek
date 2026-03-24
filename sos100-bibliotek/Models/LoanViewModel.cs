@@ -1,22 +1,16 @@
-﻿using System.Text.Json.Serialization;
-
-namespace sos100_bibliotek.Models;
-
-public class LoanViewModel
+﻿namespace sos100_bibliotek.Models
 {
-    [JsonPropertyName("id")]
-    public int Id { get; set; }
-
-    [JsonPropertyName("bookId")]
-    public int BookId { get; set; }
-
-    [JsonPropertyName("userId")]
-    public int UserId { get; set; }
-
-    [JsonPropertyName("loanDate")]
-    public DateTime LoanDate { get; set; }
-
-    // Denna används för att visa titeln på skärmen, 
-    // även om API:et bara skickar ID:t kan vi behöva mappa den.
-    public string BookTitle { get; set; } = "Hämtar titel...";
+    public class LoanViewModel
+    {
+        public int Id { get; set; }
+        
+        // LÄGG TILL DENNA RAD:
+        public int UserId { get; set; } 
+        
+        public int BookId { get; set; }
+        public string BookTitle { get; set; } = string.Empty;
+        public DateTime LoanDate { get; set; }
+        public DateTime ReturnDate { get; set; }
+        public bool IsReturned { get; set; }
+    }
 }
