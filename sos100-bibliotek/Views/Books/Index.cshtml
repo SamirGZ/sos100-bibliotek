@@ -3,7 +3,6 @@
 @{
     ViewData["Title"] = "Katalog";
 }
-<link rel="stylesheet" href="~/css/BookCatalogue.css" asp-append-version="true"/>
 
 <main class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -25,7 +24,7 @@
                         <hr />
                         <div class="small text-secondary">
                             <p class="mb-1"><strong>Utgiven:</strong> @Books.Year</p>
-                            <p class="mb-1"><strong>Sidor:</strong> @Books.Pages</p>
+                            <p class="mb-1"><strong>Antal sidor:</strong> @Books.Pages</p>
                             <p class="mb-1"><strong>Språk:</strong> @Books.Language</p>
                             <p class="mb-1"><strong>Förlag:</strong> @Books.Publisher</p>
                             <p class="mb-1"><strong>ISBN:</strong> @Books.Isbn</p>
@@ -35,11 +34,15 @@
                     <div class="card-footer bg-transparent border-0 mt-2">
                         @if (Context.Session.GetString("Username") != null)
                         {
-                            <form asp-controller="Home" asp-action="BorrowBook" method="post">
-                                <input type="hidden" name="bookId" value="@Books.Id" />
-                                <input type="hidden" name="bookTitle" value="@Books.Title" />
-                                <button class="btn btn-primary w-100 LoanKnapp" type="submit">Låna boken</button>
-                            </form>
+                            <div class="d-grid gap-2">
+                                <form asp-controller="Home" asp-action="BorrowBook" method="post">
+                                    <input type="hidden" name="bookId" value="@Books.Id" />
+                                    <input type="hidden" name="bookTitle" value="@Books.Title" />
+                                    <button class="btn btn-primary w-100 LoanKnapp" type="submit">Låna boken</button>
+                                </form>
+                            
+                                <a asp-controller="Reservations" asp-action="Index" class="btn btn-primary w-100">Reservera boken</a>
+                            </div>
                         }
                         else
                         {
