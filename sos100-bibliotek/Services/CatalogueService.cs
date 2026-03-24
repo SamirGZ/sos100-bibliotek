@@ -12,7 +12,7 @@ public class CatalogueService
         _httpClient.BaseAddress = new Uri("http://localhost:5149/");
     }
 
-    public async Task<BookCatalogue[]> GetBookCatalogue()
+    public async Task<BookCatalogue[]?> GetBookCatalogue()
     {
         var bookcatalogue = await _httpClient.GetFromJsonAsync<BookCatalogue[]>("api/Books");
 
@@ -21,5 +21,31 @@ public class CatalogueService
             return Array.Empty<BookCatalogue>();
         }
         return bookcatalogue;
+    }
+
+    public async Task<BookCatalogue> UpdateBookById(int Id)
+    {
+        return await _httpClient.GetFromJsonAsync<BookCatalogue>($"api/UpdateBook/{Id}");
+    }
+
+    public async Task<bool> UpdateBook(BookCatalogue bookCatalogue)
+    {
+        var Respons = await _httpClient.PutAsJsonAsync($"api/UpdateBook/{bookCatalogue.Id}", bookCatalogue);
+        
+        return Respons.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteBookById(int Id)
+    {
+        var Respons = await _httpClient.DeleteAsync($"api/DeleteBook/{Id}");
+        
+        return Respons.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> CreateBook(BookCatalogue bookCatalogue)
+    {
+        var Respons = await _httpClient.PostAsJsonAsync($"api/CreateBook", bookCatalogue);
+        
+        return Respons.IsSuccessStatusCode;
     }
 }

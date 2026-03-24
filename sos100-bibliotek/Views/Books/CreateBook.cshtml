@@ -1,0 +1,49 @@
+﻿@model sos100_bibliotek.Models.BookCatalogue
+
+@{
+    ViewData["Title"] = "Lägg till bok";
+}
+
+<main>
+    <h1>Lägg till en bok</h1>
+    
+    <form asp-action="CreateBook" method="post">
+        
+        <div class="UpdateField">
+            <label asp-for="Title"></label>
+            <input asp-for="Title"/>
+        </div>
+        
+        <div class="UpdateField">
+            <label asp-for="Author"></label>
+            <input asp-for="Author"/>
+        </div>
+        
+        <div class="UpdateField">
+            <label asp-for="Year"></label>
+            <input asp-for="Year"/>
+        </div>
+        
+        <div class="UpdateField">
+            <label asp-for="Pages"></label>
+            <input asp-for="Pages"/>
+        </div>
+        
+        <div class="UpdateField">
+            <label asp-for="Language"></label>
+            <input asp-for="Language"/>
+        </div>
+        
+        <div class="UpdateField">
+            <label asp-for="Publisher"></label>
+            <input asp-for="Publisher"/>
+        </div>
+        
+        <div class="UpdateField">
+            <label asp-for="Isbn"></label>
+            <input asp-for="Isbn"/>
+        </div>
+        
+        <button type="submit">Lägg till boken</button>
+    </form>
+</main>
