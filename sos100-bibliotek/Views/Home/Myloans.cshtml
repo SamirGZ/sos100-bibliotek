@@ -1,0 +1,39 @@
+﻿@model IEnumerable<sos100_bibliotek.Models.LoanViewModel>
+
+@{
+    ViewData["Title"] = "Mina aktiva lån";
+}
+
+<div class="container mt-5">
+    <h2>Mina lån</h2>
+    <hr />
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-secondary">
+            Inga aktiva lån hittades för detta konto.
+        </div>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>Boktitel</th>
+                <th>Lånedatum</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var loan in Model)
+            {
+                <tr>
+                    <td>@loan.BookTitle</td>
+                    <td>@loan.LoanDate.ToShortDateString()</td>
+                    <td><span class="badge bg-success">Aktiv</span></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div>

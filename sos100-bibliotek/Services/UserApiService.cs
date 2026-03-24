@@ -1,4 +1,9 @@
-﻿public class UserApiService
+﻿using System.Net.Http.Json;
+using sos100_bibliotek.Models;
+
+namespace sos100_bibliotek.Services;
+
+public class UserApiService
 {
     private readonly HttpClient _httpClient;
 
@@ -7,11 +12,21 @@
         _httpClient = httpClient;
     }
 
-    public async Task<bool> LoginAsync(string username, string password)
+    /// <summary>
+    /// Autentiserar användaren och returnerar användarprofil vid lyckad inloggning.
+    /// </summary>
+    public async Task<UserProfileDto?> LoginAndGetUserAsync(string username, string password)
     {
         var payload = new { username, password };
         var response = await _httpClient.PostAsJsonAsync("/api/auth/login", payload);
-        return response.IsSuccessStatusCode;
+
+        if (response.IsSuccessStatusCode)
+        {
+            // Deserialiserar responsen till UserProfileDto för att inkludera UserId
+            return await response.Content.ReadFromJsonAsync<UserProfileDto>();
+        }
+
+        return null;
     }
 
     public async Task<bool> RegisterAsync(string username, string password, string email)
@@ -41,4 +56,4 @@
         var response = await _httpClient.PutAsJsonAsync("/api/auth/update-password", payload);
         return response.IsSuccessStatusCode;
     }
-}
+}   
