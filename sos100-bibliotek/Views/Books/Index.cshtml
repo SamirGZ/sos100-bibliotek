@@ -13,16 +13,6 @@
             <a asp-action="CreateBook" class="btn btn-success">Lägg till en bok</a>
         }
     </div>
-
-    @if (TempData["Message"] != null)
-    {
-        <div class="alert alert-success">@TempData["Message"]</div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger">@TempData["Error"]</div>
-    }
-
     @* Grid-system: row-cols-md-3 gör att det blir 3 kort per rad *@
     <div class="row row-cols-1 row-cols-md-3 g-4">
         @foreach (var Books in Model)

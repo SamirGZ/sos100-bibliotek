@@ -2,9 +2,9 @@ using sos100_bibliotek.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 1. REGISTRERA TJÄNSTER (SERVICES) - Allt här inne läggs i "verktygslådan"
 builder.Services.AddControllersWithViews();
 
-// Konfiguration av sessionstillstånd
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -12,7 +12,8 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// --- REGISTRERING AV HTTP-KLIENTER OCH TJÄNSTER ---
+// FIX: Denna rad flyttades upp hit (ovanför builder.Build)
+builder.Services.AddHttpClient(); 
 
 // User API
 builder.Services.AddHttpClient<UserApiService>(client =>
@@ -38,11 +39,12 @@ builder.Services.AddHttpClient("NotificationsAPI", client =>
     client.BaseAddress = new Uri("http://localhost:5235/");
 });
 
-// Registrera tjänsten så att NotificationController kan hitta den
 builder.Services.AddScoped<NotificationService>();
 
+// 2. BYGG APPLIKATIONEN - Här låses listan över tjänster
 var app = builder.Build();
 
+// 3. KONFIGURERA PIPELINE (MIDDLEWARE) - Hur anrop hanteras
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -53,7 +55,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-// Aktivering av session och auktorisering i korrekt ordning
+// Session måste ligga före Authorization
 app.UseSession();
 app.UseAuthorization();
 
@@ -61,4 +63,5 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+// 4. KÖR!
 app.Run();

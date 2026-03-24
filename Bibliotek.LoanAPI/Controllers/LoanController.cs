@@ -12,8 +12,6 @@ public class LoanController : ControllerBase
 {
     private readonly LoanDbContext _context;
     private readonly IHttpClientFactory _httpClientFactory;
-    
-    // FIX: Lagt till 's' i slutet (notifications) för att matcha hans controller
     private const string NotificationsApiUrl = "http://localhost:5235/api/notifications";
 
     public LoanController(LoanDbContext context, IHttpClientFactory httpClientFactory)
@@ -22,20 +20,14 @@ public class LoanController : ControllerBase
         _httpClientFactory = httpClientFactory;
     }
 
-    [HttpGet]
-    public async Task<IActionResult> Get() => Ok(await _context.Loans.ToListAsync());
-
-    [HttpGet("{id}")]
-    public async Task<IActionResult> Get(int id)
-    {
-        var loan = await _context.Loans.FindAsync(id);
-        return loan == null ? NotFound() : Ok(loan);
-    }
-
-    [HttpPost] // CREATE + NOTIFY
+    [HttpPost]
     public async Task<IActionResult> Post([FromBody] Loan loan)
     {
-        // 1. Spara i din databas
+        var alreadyBorrowed = await _context.Loans
+            .AnyAsync(l => l.UserId == loan.UserId && l.BookTitle == loan.BookTitle && !l.IsReturned);
+
+        if (alreadyBorrowed) return BadRequest("Boken är redan lånad.");
+
         loan.LoanDate = DateTime.Now;
         loan.ReturnDate = DateTime.Now.AddDays(30);
         loan.IsReturned = false;
@@ -43,26 +35,7 @@ public class LoanController : ControllerBase
         _context.Loans.Add(loan);
         await _context.SaveChangesAsync();
 
-        // 2. Skicka till klasskamratens NotificationsService
-        try 
-        {
-            var client = _httpClientFactory.CreateClient();
-            var notice = new { 
-                UserId = loan.UserId, 
-                Message = $"Du har lånat '{loan.BookTitle}'. Återlämnas senast {loan.ReturnDate.ToShortDateString()}." 
-            };
-            
-            var response = await client.PostAsJsonAsync(NotificationsApiUrl, notice);
-
-            if (response.IsSuccessStatusCode)
-                Console.WriteLine($">>> SUCCESS: Notis skickad till {NotificationsApiUrl}");
-            else
-                Console.WriteLine($">>> API ERROR {response.StatusCode}: Han nåddes men nekade JSON-datan (kolla hans [FromBody]).");
-        }
-        catch (Exception ex) 
-        { 
-            Console.WriteLine($">>> CONNECTION ERROR: Kunde inte nå {NotificationsApiUrl}. Kontrollera port 5235.");
-        }
+        await SendNotification(loan.UserId, $"Nytt lån: {loan.BookTitle}. Återlämnas {loan.ReturnDate.ToShortDateString()}.");
 
         return CreatedAtAction(nameof(Get), new { id = loan.Id }, loan);
     }
@@ -74,36 +47,39 @@ public class LoanController : ControllerBase
         if (loan == null) return NotFound();
 
         loan.IsReturned = updated.IsReturned;
-        if (!string.IsNullOrEmpty(updated.BookTitle)) loan.BookTitle = updated.BookTitle;
-
         await _context.SaveChangesAsync();
+
+        if (loan.IsReturned)
+        {
+            await SendNotification(loan.UserId, $"Boken '{loan.BookTitle}' har återlämnats.");
+        }
+
         return NoContent();
     }
 
-    [HttpDelete("{id}")] // DELETE + NOTIFY
+    // Gemensam metod för att skicka notiser säkert
+    private async Task SendNotification(int userId, string message)
+    {
+        try 
+        {
+            var client = _httpClientFactory.CreateClient();
+            client.Timeout = TimeSpan.FromSeconds(3);
+            var notice = new { UserId = userId, Message = message };
+            await client.PostAsJsonAsync(NotificationsApiUrl, notice);
+        }
+        catch (Exception ex) { Console.WriteLine($">>> NOTIFICATION ERROR: {ex.Message}"); }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Get() => Ok(await _context.Loans.ToListAsync());
+
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
         var loan = await _context.Loans.FindAsync(id);
         if (loan == null) return NotFound();
-
-        var userId = loan.UserId;
-        var bookTitle = loan.BookTitle;
-
         _context.Loans.Remove(loan);
         await _context.SaveChangesAsync();
-
-        try 
-        {
-            var client = _httpClientFactory.CreateClient();
-            var notice = new { UserId = userId, Message = $"Lånet för '{bookTitle}' har avbrutits." };
-            await client.PostAsJsonAsync(NotificationsApiUrl, notice);
-            Console.WriteLine(">>> SUCCESS: Avbryt-notis skickad.");
-        }
-        catch (Exception ex) 
-        {
-            Console.WriteLine($">>> ERROR: Kunde inte skicka avbryt-notis: {ex.Message}");
-        }
-
         return NoContent();
     }
 }
