@@ -65,4 +65,30 @@ public class BooksController: Controller
         
         return RedirectToAction("Index");
     }
+
+    [HttpGet]
+    public IActionResult CreateBook()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateBook(BookCatalogue bookCatalogue)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(bookCatalogue);
+        }
+
+        var Success = await _catalogueService.CreateBook(bookCatalogue);
+
+        if (!Success)
+        {
+            ModelState.AddModelError("", "Kunde inte skapa boken");
+            
+            return View(bookCatalogue);
+        }
+        
+        return RedirectToAction("Index");
+    }
 }

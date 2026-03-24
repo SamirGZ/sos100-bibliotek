@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Catalogue_service.Models;
 using Catalogue_service.Data;
 
 namespace Catalogue_service.Controllers;
