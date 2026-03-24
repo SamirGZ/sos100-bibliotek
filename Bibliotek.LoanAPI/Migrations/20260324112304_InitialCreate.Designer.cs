@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Bibliotek.LoanAPI.Migrations
 {
     [DbContext(typeof(LoanDbContext))]
-    [Migration("20260316220712_InitialCreate")]
+    [Migration("20260324112304_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -43,44 +43,46 @@ namespace Bibliotek.LoanAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
-
                     b.ToTable("Loans");
                 });
 
-            modelBuilder.Entity("Bibliotek.LoanAPI.Models.User", b =>
+            modelBuilder.Entity("Bibliotek.LoanAPI.Models.LoanEvent", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Email")
+                    b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
+                    b.Property<DateTime>("EventDate")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("LoanId")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.HasIndex("LoanId");
+
+                    b.ToTable("LoanEvents");
+                });
+
+            modelBuilder.Entity("Bibliotek.LoanAPI.Models.LoanEvent", b =>
+                {
+                    b.HasOne("Bibliotek.LoanAPI.Models.Loan", "Loan")
+                        .WithMany("History")
+                        .HasForeignKey("LoanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Loan");
                 });
 
             modelBuilder.Entity("Bibliotek.LoanAPI.Models.Loan", b =>
                 {
-                    b.HasOne("Bibliotek.LoanAPI.Models.User", "User")
-                        .WithMany("Loans")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Bibliotek.LoanAPI.Models.User", b =>
-                {
-                    b.Navigation("Loans");
+                    b.Navigation("History");
                 });
 #pragma warning restore 612, 618
         }

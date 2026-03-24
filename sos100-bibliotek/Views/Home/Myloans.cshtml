@@ -1,0 +1,81 @@
+﻿@model IEnumerable<sos100_bibliotek.Models.LoanViewModel>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-book"></i> Mina aktiva lån</h2>
+        </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info shadow-sm">
+            <i class="bi bi-info-circle"></i> Du har inga aktiva lån just nu.
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 40%">Boktitel</th>
+                            <th>Lånedatum</th>
+                            <th>Återlämnas senast</th>
+                            <th>Status</th>
+                            <th class="text-end">Åtgärder</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var loan in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-primary">@loan.BookTitle</td>
+                                <td>@loan.LoanDate.ToShortDateString()</td>
+                                <td>
+                                    @if (!loan.IsReturned && loan.ReturnDate < DateTime.Now)
+                                    {
+                                        <span class="text-danger fw-bold">@loan.ReturnDate.ToShortDateString() (Försenad)</span>
+                                    }
+                                    else
+                                    {
+                                        @loan.ReturnDate.ToShortDateString()
+                                    }
+                                </td>
+                                <td>
+                                    @if (loan.IsReturned)
+                                    {
+                                        <span class="badge rounded-pill bg-success">Återlämnad</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill bg-warning text-dark">Aktivt lån</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group" role="group">
+                                        @if (!loan.IsReturned)
+                                        {
+                                            <form asp-action="ReturnBook" method="post" class="d-inline">
+                                                <input type="hidden" name="id" value="@loan.Id" />
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    Lämna tillbaka
+                                                </button>
+                                            </form>
+                                        }
+                                        <form asp-action="DeleteLoan" method="post" class="d-inline ms-1" 
+                                              onsubmit="return confirm('Vill du verkligen radera historiken för detta lån?');">
+                                            <input type="hidden" name="id" value="@loan.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                Radera
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

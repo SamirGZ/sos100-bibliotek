@@ -1,43 +1,39 @@
-<!-- Navigationsbar som kan sen läggas in i fler olika Views. -->
-
+@using Microsoft.AspNetCore.Http
 <nav class="navbar">
-
-    <div class="profilebox pointer">
-        <a asp-controller="Home" asp-action="Index">
-            <img class="profile" src="~/images/logo.png" alt="profile" />
-        </a>
+    <div class="profilebox pointer" data-url="/">
+        <img class="profile" src="~/images/logo.png" alt="Logotyp" />
     </div>
     
     <div class="namebox pointer">
-        <a asp-controller="Home" asp-action="Index">SOS100 - <br>&nbsp;Biblioteket<br></a>
+        <a class="pointer" asp-controller="Home" asp-action="Index">Bibliotekssystem</a>
     </div>
 
-    <button class="navbutton" style="grid-area: 1 / 14 / 1 / 14;" id="navAboutButton">
-        <a asp-controller="Profile" asp-action="Index">Profil</a>
-    </button>  
-    
     @if (Context.Session.GetString("Username") != null)
     {
-        <button class="navbutton" style="grid-area: 1 / 15 / 1 / 15; white-space: nowrap;">
-            <a asp-controller="Logout" asp-action="Index">Logga Ut</a>
+        <button class="navbutton" style="grid-area: 1 / 10;">
+            <a asp-controller="Home" asp-action="MyLoans" style="color: #001f3f; font-weight: bold; text-decoration: none;">Mina lån</a>
         </button>
-        <button class="navbutton" style="grid-area: 1 / 13 / 1 / 13;">
+
+        <button class="navbutton" style="grid-area: 1 / 11;">
+            <a asp-controller="Reservations" asp-action="Index">Reservationer</a>
+        </button>
+
+        <button class="navbutton" style="grid-area: 1 / 12;">
             <a asp-controller="Notification" asp-action="Index">Notifikationer</a>
+        </button>
+
+        <button class="navbutton" style="grid-area: 1 / 13;" id="navAboutButton">
+            <a asp-controller="Profile" asp-action="Index">Profil</a>
+        </button>
+
+        <button class="navbutton" style="grid-area: 1 / 14;">
+            <a asp-controller="Login" asp-action="Logout">Logga Ut</a>
         </button>
     }
     else
     {
-        <button class="navbutton" style="grid-area: 1 / 15 / 1 / 15; white-space: nowrap;" id="navProjectsButton">
+        <button class="navbutton" style="grid-area: 1 / 14;" id="navProjectsButton">
             <a asp-controller="Login" asp-action="Index">Logga In</a>
         </button>
     }
-
-    @if (Context.Session.GetString("Username") == "admin")
-    {
-    <button class="navbutton" style="grid-area: 1 / 12 / 1 / 12;">
-        <a asp-controller="Reservations" asp-action="Index">Reservationer</a>
-    </button>
-    }
-
-
 </nav>

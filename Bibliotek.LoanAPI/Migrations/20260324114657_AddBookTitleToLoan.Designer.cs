@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Bibliotek.LoanAPI.Migrations
 {
     [DbContext(typeof(LoanDbContext))]
-    [Migration("20260318041241_AddLoanHistoryTable")]
-    partial class AddLoanHistoryTable
+    [Migration("20260324114657_AddBookTitleToLoan")]
+    partial class AddBookTitleToLoan
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -29,6 +29,10 @@ namespace Bibliotek.LoanAPI.Migrations
                     b.Property<int>("BookId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("BookTitle")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("IsReturned")
                         .HasColumnType("INTEGER");
 
@@ -42,8 +46,6 @@ namespace Bibliotek.LoanAPI.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Loans");
                 });
@@ -71,36 +73,6 @@ namespace Bibliotek.LoanAPI.Migrations
                     b.ToTable("LoanEvents");
                 });
 
-            modelBuilder.Entity("Bibliotek.LoanAPI.Models.User", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("Bibliotek.LoanAPI.Models.Loan", b =>
-                {
-                    b.HasOne("Bibliotek.LoanAPI.Models.User", "User")
-                        .WithMany("Loans")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Bibliotek.LoanAPI.Models.LoanEvent", b =>
                 {
                     b.HasOne("Bibliotek.LoanAPI.Models.Loan", "Loan")
@@ -115,11 +87,6 @@ namespace Bibliotek.LoanAPI.Migrations
             modelBuilder.Entity("Bibliotek.LoanAPI.Models.Loan", b =>
                 {
                     b.Navigation("History");
-                });
-
-            modelBuilder.Entity("Bibliotek.LoanAPI.Models.User", b =>
-                {
-                    b.Navigation("Loans");
                 });
 #pragma warning restore 612, 618
         }

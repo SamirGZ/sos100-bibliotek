@@ -6,7 +6,7 @@ using NotificationsService.Models;
 namespace NotificationsService.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/[controller]")] // Detta gör adressen till: api/notifications
 public class NotificationsController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -16,6 +16,7 @@ public class NotificationsController : ControllerBase
         _context = context;
     }
 
+    // READ - Hämtar alla notiser till hans vy
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -31,16 +32,29 @@ public class NotificationsController : ControllerBase
         return Ok(notification);
     }
 
+    // CREATE - Denna tar emot notisen från DITT LoanAPI
     [HttpPost]
-    public async Task<IActionResult> Create(Notification notification)
+    public async Task<IActionResult> Create([FromBody] Notification notification) 
     {
+        // Om du skickar tom data eller fel format
+        if (notification == null) 
+        {
+            return BadRequest("Data saknas eller är felaktig.");
+        }
+
+        // Här sätter vi ett standardvärde om han har det i sin modell
+        notification.CreatedAt = DateTime.Now; 
+        notification.IsRead = false;
+
         _context.Notifications.Add(notification);
         await _context.SaveChangesAsync();
+        
         return CreatedAtAction(nameof(GetById), new { id = notification.Id }, notification);
     }
 
+    // UPDATE - Om han vill markera en notis som läst
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, Notification updated)
+    public async Task<IActionResult> Update(int id, [FromBody] Notification updated)
     {
         var notification = await _context.Notifications.FindAsync(id);
         if (notification == null) return NotFound();
@@ -52,6 +66,7 @@ public class NotificationsController : ControllerBase
         return NoContent();
     }
 
+    // DELETE - Ta bort en notis
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {

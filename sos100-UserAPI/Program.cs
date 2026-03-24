@@ -13,7 +13,19 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<IUserService, UserService>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReact", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
+
+app.UseCors("AllowReact");
 
 // Force database creation on startup
 using (var scope = app.Services.CreateScope())
@@ -24,7 +36,6 @@ using (var scope = app.Services.CreateScope())
     // Log where the database is being created
     Console.WriteLine($"Database path: {db.Database.GetDbConnection().DataSource}");
 }
-
 
 // Configure the HTTP request pipeline.
 //if (app.Environment.IsDevelopment())

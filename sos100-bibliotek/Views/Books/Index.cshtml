@@ -4,36 +4,61 @@
     ViewData["Title"] = "Katalog";
 }
 <link rel="stylesheet" href="~/css/BookCatalogue.css" asp-append-version="true"/>
-<main>
-    @if (Context.Session.GetString("Username") == "admin")
-    {
-        <a asp-action="CreateBook" class="CreateKnapp">Lägg till en bok</a>
-    }
 
-    <h1>Bokkatalog</h1>
-    
-        <div class="Catalogue">
-            @foreach (var Books in Model)
-            { 
-                <div class="Books">
-                    <p><strong>Titel:</strong> @Books.Title</p>
-                    <p><strong>Författare:</strong> @Books.Author</p>
-                    <p><strong>Utgiven:</strong> @Books.Year</p>
-                    <p><strong>Antal sidor:</strong> @Books.Pages</p>
-                    <p><strong>Språk:</strong> @Books.Language</p>
-                    <p><strong>Förlag:</strong> @Books.Publisher</p>
-                    <p><strong>ISBN:</strong> @Books.Isbn</p>
+<main class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Bokkatalog</h1>
+        @if (Context.Session.GetString("Username") == "admin")
+        {
+            <a asp-action="CreateBook" class="btn btn-success">Lägg till en bok</a>
+        }
+    </div>
+    @* Grid-system: row-cols-md-3 gör att det blir 3 kort per rad *@
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        @foreach (var Books in Model)
+        { 
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0 bg-light p-3">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">@Books.Title</h5>
+                        <p class="mb-1 text-muted"><strong>Författare:</strong> @Books.Author</p>
+                        <hr />
+                        <div class="small text-secondary">
+                            <p class="mb-1"><strong>Utgiven:</strong> @Books.Year</p>
+                            <p class="mb-1"><strong>Sidor:</strong> @Books.Pages</p>
+                            <p class="mb-1"><strong>Språk:</strong> @Books.Language</p>
+                            <p class="mb-1"><strong>Förlag:</strong> @Books.Publisher</p>
+                            <p class="mb-1"><strong>ISBN:</strong> @Books.Isbn</p>
+                        </div>
+                    </div>
 
-                    <button class="LoanKnapp" type="submit">Låna boken</button>
-                    
-                    @if (Context.Session.GetString("Username") == "admin")
+                    <div class="card-footer bg-transparent border-0 mt-2">
+                        @if (Context.Session.GetString("Username") != null)
+                        {
+                            <form asp-controller="Home" asp-action="BorrowBook" method="post">
+                                <input type="hidden" name="bookId" value="@Books.Id" />
+                                <input type="hidden" name="bookTitle" value="@Books.Title" />
+                                <button class="btn btn-primary w-100 LoanKnapp" type="submit">Låna boken</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <p class="text-center text-muted small italic">Logga in för att låna</p>
+                        }
 
-                    <a asp-action="EditBook" asp-route-id="@Books.Id" class="UpdateKnapp">Redigera</a>
-                    
-                    <form asp-action="DeleteBook" asp-route-id="@Books.Id" method="post">
-                        <button class="DeleteKnapp" type="submit">Ta bort boken</button>
-                    </form>
+                        @if (Context.Session.GetString("Username") == "admin")
+                        { 
+                            <div class="d-flex gap-2 mt-2">
+                                <a asp-action="EditBook" asp-route-id="@Books.Id" class="btn btn-sm btn-outline-secondary w-50 UpdateKnapp text-center">Redigera</a>
+
+                                <form asp-action="DeleteBook" asp-route-id="@Books.Id" method="post" class="w-50">
+                                    <button class="btn btn-sm btn-outline-danger w-100 DeleteKnapp" type="submit">Ta bort</button>
+                                </form>
+                            </div>
+                        }
+                    </div>
                 </div> 
-            }
-        </div>
+            </div> 
+        }
+    </div>
 </main>

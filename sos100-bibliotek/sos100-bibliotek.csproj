@@ -11,4 +11,8 @@
       <PackageReference Include="Scalar.AspNetCore" Version="2.13.11" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Views\Loan\" />
+    </ItemGroup>
+
 </Project>

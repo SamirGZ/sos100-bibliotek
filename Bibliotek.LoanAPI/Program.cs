@@ -19,7 +19,14 @@ builder.Services.AddCors(options =>
                 .AllowAnyHeader();
         });
 });
+// Lägg till detta i builder-sektionen
+builder.Services.AddHttpClient("LoanAPI", client => {
+    client.BaseAddress = new Uri("http://localhost:5029/");
+});
 
+builder.Services.AddHttpClient("UserAPI", client => {
+    client.BaseAddress = new Uri("http://localhost:5027/");
+});
 builder.Services.AddControllers();
 builder.Services.AddHttpClient();
 builder.Services.AddOpenApi(); // Denna genererar JSON-dokumentationen
