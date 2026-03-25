@@ -1,14 +1,39 @@
 using System.Net.Http.Json;
+using Microsoft.Extensions.Configuration;
 
 namespace sos100_bibliotek.Services;
 
+// 1. DTO-klasser ska ligga här (utanför servicen)
+public class NotificationDto
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public string Username { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public bool IsRead { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+public class LoanDto
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public string Username { get; set; } = string.Empty;
+    public int BookId { get; set; }
+    public DateTime ReturnDate { get; set; }
+    public bool IsReturned { get; set; }
+}
+
+// 2. Själva servicen börjar här
 public class NotificationService
 {
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IConfiguration _configuration;
 
-    public NotificationService(IHttpClientFactory httpClientFactory)
+    public NotificationService(IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
         _httpClientFactory = httpClientFactory;
+        _configuration = configuration;
     }
 
     public async Task<List<NotificationDto>> GetNotificationsAsync()
@@ -45,7 +70,6 @@ public class NotificationService
     public async Task MarkAsReadAsync(int id)
     {
         var client = _httpClientFactory.CreateClient("NotificationsAPI");
-        // Uppdaterar status till läst
         await client.PutAsJsonAsync($"api/notifications/{id}", new { Message = "Markerad som läst", IsRead = true });
     }
 
@@ -54,7 +78,8 @@ public class NotificationService
         try
         {
             var client = _httpClientFactory.CreateClient();
-            var loans = await client.GetFromJsonAsync<List<LoanDto>>("http://localhost:5029/api/loan");
+            var loanApiUrl = _configuration["ServiceUrls:LoanApi"];
+            var loans = await client.GetFromJsonAsync<List<LoanDto>>($"{loanApiUrl}/api/loan");
 
             if (loans == null) return;
 
@@ -72,23 +97,4 @@ public class NotificationService
         }
         catch (Exception) { }
     }
-}
-
-public class NotificationDto
-{
-    public int Id { get; set; }
-    public int UserId { get; set; }
-    public string Username { get; set; } = string.Empty;
-    public string Message { get; set; } = string.Empty;
-    public bool IsRead { get; set; }
-    public DateTime CreatedAt { get; set; }
-}
-
-public class LoanDto
-{
-    public int Id { get; set; }
-    public int UserId { get; set; }
-    public string Username { get; set; } = string.Empty;
-    public DateTime ReturnDate { get; set; }
-    public bool IsReturned { get; set; }
 }

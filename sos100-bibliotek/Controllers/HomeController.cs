@@ -7,9 +7,13 @@ namespace sos100_bibliotek.Controllers;
 public class HomeController : Controller
 {
     private readonly IHttpClientFactory _httpClientFactory;
-    private const string ApiUrl = "http://localhost:5029/api/loan";
+    private readonly string _loanApiUrl;
 
-    public HomeController(IHttpClientFactory httpClientFactory) => _httpClientFactory = httpClientFactory;
+    public HomeController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+    {
+        _httpClientFactory = httpClientFactory;
+        _loanApiUrl = configuration["ServiceUrls:LoanApi"] + "/api/loan";
+    }
 
     [HttpGet]
     public IActionResult Index() => View();
@@ -18,30 +22,20 @@ public class HomeController : Controller
     public async Task<IActionResult> BorrowBook(int bookId, string bookTitle)
     {
         var userId = HttpContext.Session.GetInt32("UserId");
-        var username = HttpContext.Session.GetString("Username"); // Hämta namnet här!
+        var username = HttpContext.Session.GetString("Username");
 
         var client = _httpClientFactory.CreateClient();
-        var response = await client.PostAsJsonAsync("http://localhost:5029/api/loan", new { 
+        var response = await client.PostAsJsonAsync(_loanApiUrl, new { 
             UserId = userId, 
-            Username = username, // Skicka med namnet till API:et
+            Username = username, 
             BookTitle = bookTitle 
         });
         
-
         if (response.IsSuccessStatusCode)
-        {
-            // Lagrar feedback som raderas efter nästa sidvisning
-            TempData["SuccessMessage"] = $"Boken '{bookTitle}' har lagts till i dina lån!";
-        }
+            TempData["SuccessMessage"] = $"Boken '{bookTitle}' har lånats!";
         else
-        {
-            // Hämtar felmeddelandet direkt från API:et (t.ex. "Boken är redan utlånad")
-            var errorReason = await response.Content.ReadAsStringAsync();
-            TempData["ErrorMessage"] = !string.IsNullOrEmpty(errorReason) ? errorReason : "Kunde inte låna boken.";
-        }
+            TempData["ErrorMessage"] = "Kunde inte låna boken.";
 
-        // Skickar tillbaka användaren till boklistan istället för "Mina lån"
-        // Ändra från: return RedirectToAction("Index");
         return RedirectToAction("Index", "Books");
     }
 
@@ -53,27 +47,22 @@ public class HomeController : Controller
         var client = _httpClientFactory.CreateClient();
         try 
         {
-            var allLoans = await client.GetFromJsonAsync<List<LoanViewModel>>(ApiUrl);
-            var myLoans = allLoans?.Where(l => l.UserId == userId).ToList() ?? new List<LoanViewModel>();
+            var allLoans = await client.GetFromJsonAsync<List<LoanViewModel>>(_loanApiUrl);
+            var myLoans = allLoans?.Where(l => l.UserId == userId).ToList() ?? new();
             return View(myLoans);
         }
-        catch 
-        { 
-            return View(new List<LoanViewModel>()); 
-        }
+        catch { return View(new List<LoanViewModel>()); }
     }
 
     [HttpPost]
     public async Task<IActionResult> ReturnBook(int id)
     {
         var userId = HttpContext.Session.GetInt32("UserId");
-        var username = HttpContext.Session.GetString("Username"); // Lägg till detta
+        var username = HttpContext.Session.GetString("Username");
         if (userId == null) return RedirectToAction("Index", "Login");
 
         var client = _httpClientFactory.CreateClient();
-    
-        // Skicka med username även vid återlämning för säkerhets skull
-        await client.PutAsJsonAsync($"{ApiUrl}/{id}", new { 
+        await client.PutAsJsonAsync($"{_loanApiUrl}/{id}", new { 
             IsReturned = true, 
             UserId = userId,
             Username = username 
@@ -86,7 +75,7 @@ public class HomeController : Controller
     public async Task<IActionResult> DeleteLoan(int id)
     {
         var client = _httpClientFactory.CreateClient();
-        await client.DeleteAsync($"{ApiUrl}/{id}");
+        await client.DeleteAsync($"{_loanApiUrl}/{id}");
         return RedirectToAction("MyLoans");
     }
 }

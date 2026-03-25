@@ -12,25 +12,23 @@ public class LoanController : ControllerBase
 {
     private readonly LoanDbContext _context;
     private readonly IHttpClientFactory _httpClientFactory;
-    private const string NotificationsApiUrl = "http://localhost:5235/api/notifications";
+    private readonly string _notificationsApiUrl; // Flyttad från const till variabel
 
-    public LoanController(LoanDbContext context, IHttpClientFactory httpClientFactory)
+    public LoanController(LoanDbContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
         _context = context;
         _httpClientFactory = httpClientFactory;
+        // Hämtar adressen från Azure/appsettings
+        _notificationsApiUrl = configuration["ServiceUrls:NotificationsApi"] + "/api/notifications";
     }
 
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Loan loan)
     {
-        // Kontrollera om boken redan är utlånad (global kontroll)
         var isBookTaken = await _context.Loans.AnyAsync(l => 
             l.BookTitle == loan.BookTitle && !l.IsReturned);
 
-        if (isBookTaken) 
-        {
-            return BadRequest("Denna bok är tyvärr redan utlånad till en annan användare.");
-        }
+        if (isBookTaken) return BadRequest("Denna bok är tyvärr redan utlånad.");
 
         loan.LoanDate = DateTime.Now;
         loan.ReturnDate = DateTime.Now.AddDays(30);
@@ -39,8 +37,7 @@ public class LoanController : ControllerBase
         _context.Loans.Add(loan);
         await _context.SaveChangesAsync();
 
-        // Skicka notis med namnet som kom med i 'loan'-objektet från Frontend
-        await SendNotification(loan.UserId, loan.Username, $"Du har lånat '{loan.BookTitle}'. Återlämnas senast {loan.ReturnDate.ToShortDateString()}.");
+        await SendNotification(loan.UserId, loan.Username, $"Du har lånat '{loan.BookTitle}'.");
 
         return CreatedAtAction(nameof(Get), new { id = loan.Id }, loan);
     }
@@ -56,7 +53,6 @@ public class LoanController : ControllerBase
 
         if (loan.IsReturned)
         {
-            // Vi använder det sparade namnet från databasen (loan.Username)
             await SendNotification(loan.UserId, loan.Username, $"Boken '{loan.BookTitle}' har återlämnats.");
         }
 
@@ -76,29 +72,18 @@ public class LoanController : ControllerBase
         return NoContent();
     }
 
-    // DENNA METOD ÄR NU DEN ENDA SOM SKICKAR NOTISER
     private async Task SendNotification(int userId, string username, string message)
     {
         try 
         {
             var client = _httpClientFactory.CreateClient();
-            client.Timeout = TimeSpan.FromSeconds(3);
-        
-            // Fallback om username saknas (för gamla rader i databasen)
-            var finalUsername = string.IsNullOrEmpty(username) ? "Okänd användare" : username;
+            var finalUsername = string.IsNullOrEmpty(username) ? "Användare" : username;
 
-            var response = await client.PostAsJsonAsync(NotificationsApiUrl, new { 
+            await client.PostAsJsonAsync(_notificationsApiUrl, new { 
                 UserId = userId, 
                 Username = finalUsername, 
                 Message = message 
             });
-
-            // Kontrollera om anropet faktiskt lyckades
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($">>> API REJECTED: {response.StatusCode} - {error}");
-            }
         }
         catch (Exception ex) 
         { 

@@ -2,7 +2,7 @@ using sos100_bibliotek.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. REGISTRERA TJÄNSTER (SERVICES) - Allt här inne läggs i "verktygslådan"
+// 1. REGISTRERA TJÄNSTER
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddSession(options =>
@@ -12,39 +12,46 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// FIX: Denna rad flyttades upp hit (ovanför builder.Build)
 builder.Services.AddHttpClient(); 
+
+// --- HÄR ÄR ÄNDRINGARNA FÖR AZURE ---
 
 // User API
 builder.Services.AddHttpClient<UserApiService>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:UserApiBaseUrl"] ?? "http://localhost:5027");
+    // Vi läser från ServiceUrls:UserApi som du skapade i Azure
+    var url = builder.Configuration["ServiceUrls:UserApi"] ?? "http://localhost:5027";
+    client.BaseAddress = new Uri(url);
 });
 
 // Loan API
 builder.Services.AddHttpClient("LoanAPI", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5029/");
+    var url = builder.Configuration["ServiceUrls:LoanApi"] ?? "http://localhost:5029/";
+    client.BaseAddress = new Uri(url);
 });
 
 // Catalogue Service
 builder.Services.AddHttpClient<CatalogueService>(client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5149");
+    var url = builder.Configuration["ServiceUrls:CatalogueApi"] ?? "http://localhost:5149";
+    client.BaseAddress = new Uri(url);
 });
 
-// Registrera namngiven klient för Notifikationer
+// Notifications API
 builder.Services.AddHttpClient("NotificationsAPI", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5235/");
+    var url = builder.Configuration["ServiceUrls:NotificationsApi"] ?? "http://localhost:5235/";
+    client.BaseAddress = new Uri(url);
 });
+
+// ------------------------------------
 
 builder.Services.AddScoped<NotificationService>();
 
-// 2. BYGG APPLIKATIONEN - Här låses listan över tjänster
 var app = builder.Build();
 
-// 3. KONFIGURERA PIPELINE (MIDDLEWARE) - Hur anrop hanteras
+// 2. MIDDLEWARE
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -54,8 +61,6 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-
-// Session måste ligga före Authorization
 app.UseSession();
 app.UseAuthorization();
 
@@ -63,5 +68,4 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// 4. KÖR!
 app.Run();
