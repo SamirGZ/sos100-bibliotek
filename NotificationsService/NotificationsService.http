@@ -1,0 +1,39 @@
+@NotificationsService_HostAddress = http://localhost:5235
+
+GET {{NotificationsService_HostAddress}}/api/notifications
+Accept: application/json
+
+###
+
+GET {{NotificationsService_HostAddress}}/api/notifications/1
+Accept: application/json
+
+###
+
+POST {{NotificationsService_HostAddress}}/api/notifications
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "message": "Test notifikation",
+  "isRead": false
+}
+
+###
+
+PUT {{NotificationsService_HostAddress}}/api/notifications/1
+Content-Type: application/json
+
+{
+  "message": "Uppdaterad notifikation",
+  "isRead": true
+}
+
+###
+
+DELETE {{NotificationsService_HostAddress}}/api/notifications/1
+Accept: application/json
+###
+
+GET http://localhost:5029/api/loan
+Accept: application/json

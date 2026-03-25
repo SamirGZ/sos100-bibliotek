@@ -1,5 +1,17 @@
-﻿<div class="text-center mt-5">
-    <h1 class="display-4">Välkommen till bibliotekssystemet</h1>
-    <p class="lead mt-3">Hantera reservationer och få en tydlig översikt över dina bokningar.</p>
-    <a class="btn btn-primary mt-3" asp-controller="Reservations" asp-action="Index">Visa mina reservationer</a>
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <a class="katalog-title">Sök i katalogen</a>
+    <section class="search">
+        <input type="search" id="searchInput" placeholder="Sök böcker, rapporter och andra...">
+        <button id="searchButton">
+            <a asp-controller="Books" asp-action="Index">Sök</a>
+        </button>
+    </section>
 </div>
+<head>
+    <meta charset="utf-8">
+    <title>Min Filmsida Startsida</title>
+</head>
