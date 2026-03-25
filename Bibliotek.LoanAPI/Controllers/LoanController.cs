@@ -23,7 +23,7 @@ public class LoanController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Loan loan)
     {
-        // Kontrollerar om boken redan är utlånad till någon användare genom att matcha titel och IsReturned-status.
+        // Kontrollera om boken redan är utlånad (global kontroll)
         var isBookTaken = await _context.Loans.AnyAsync(l => 
             l.BookTitle == loan.BookTitle && !l.IsReturned);
 
@@ -32,17 +32,15 @@ public class LoanController : ControllerBase
             return BadRequest("Denna bok är tyvärr redan utlånad till en annan användare.");
         }
 
-        // Initierar lånets metadata. ReturnDate sätts till standard 30 dagar.
         loan.LoanDate = DateTime.Now;
         loan.ReturnDate = DateTime.Now.AddDays(30);
         loan.IsReturned = false;
-    
-        // Persisterar låneobjektet till databasen.
+
         _context.Loans.Add(loan);
         await _context.SaveChangesAsync();
 
-        // Skickar asynkron notifiering till NotificationsAPI med kopplat UserId.
-        await SendNotification(loan.UserId, $"Du har lånat '{loan.BookTitle}'. Återlämnas senast {loan.ReturnDate.ToShortDateString()}.");
+        // Skicka notis med namnet som kom med i 'loan'-objektet från Frontend
+        await SendNotification(loan.UserId, loan.Username, $"Du har lånat '{loan.BookTitle}'. Återlämnas senast {loan.ReturnDate.ToShortDateString()}.");
 
         return CreatedAtAction(nameof(Get), new { id = loan.Id }, loan);
     }
@@ -53,13 +51,13 @@ public class LoanController : ControllerBase
         var loan = await _context.Loans.FindAsync(id);
         if (loan == null) return NotFound();
 
-        // Uppdaterar returstatus. UserId behålls från ursprungsobjektet för att säkra notifikationsmottagaren.
         loan.IsReturned = updated.IsReturned;
         await _context.SaveChangesAsync();
 
         if (loan.IsReturned)
         {
-            await SendNotification(loan.UserId, $"Boken '{loan.BookTitle}' har återlämnats.");
+            // Vi använder det sparade namnet från databasen (loan.Username)
+            await SendNotification(loan.UserId, loan.Username, $"Boken '{loan.BookTitle}' har återlämnats.");
         }
 
         return NoContent();
@@ -71,26 +69,40 @@ public class LoanController : ControllerBase
         var loan = await _context.Loans.FindAsync(id);
         if (loan == null) return NotFound();
 
-        await SendNotification(loan.UserId, $"Lånehistoriken för '{loan.BookTitle}' har raderats.");
+        await SendNotification(loan.UserId, loan.Username, $"Lånehistoriken för '{loan.BookTitle}' har raderats.");
 
         _context.Loans.Remove(loan);
         await _context.SaveChangesAsync();
         return NoContent();
     }
 
-    private async Task SendNotification(int userId, string message)
+    // DENNA METOD ÄR NU DEN ENDA SOM SKICKAR NOTISER
+    private async Task SendNotification(int userId, string username, string message)
     {
         try 
         {
-            // Etablerar HTTP-klient med kort timeout för att inte blockera huvudprocessen vid nätverksfel.
             var client = _httpClientFactory.CreateClient();
             client.Timeout = TimeSpan.FromSeconds(3);
-            await client.PostAsJsonAsync(NotificationsApiUrl, new { UserId = userId, Message = message });
+        
+            // Fallback om username saknas (för gamla rader i databasen)
+            var finalUsername = string.IsNullOrEmpty(username) ? "Okänd användare" : username;
+
+            var response = await client.PostAsJsonAsync(NotificationsApiUrl, new { 
+                UserId = userId, 
+                Username = finalUsername, 
+                Message = message 
+            });
+
+            // Kontrollera om anropet faktiskt lyckades
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($">>> API REJECTED: {response.StatusCode} - {error}");
+            }
         }
         catch (Exception ex) 
         { 
-            // Loggar fel internt om notifikationstjänsten ej är tillgänglig.
-            Console.WriteLine($">>> NOTIFICATION ERROR: {ex.Message}"); 
+            Console.WriteLine($">>> CONNECTION ERROR: {ex.Message}"); 
         }
     }
 

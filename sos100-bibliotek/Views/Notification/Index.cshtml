@@ -1,39 +1,47 @@
 @model List<sos100_bibliotek.Services.NotificationDto>
 
 @{
-    var role = Context.Session.GetString("Role") ?? "user";
     var currentUserId = Context.Session.GetInt32("UserId");
+    var role = Context.Session.GetString("Role") ?? "user";
     var isAdmin = role == "admin";
 
-    // FILTRERING: Om man inte är admin, visa bara notiser som matchar ens UserId
     var displayList = isAdmin 
         ? Model.OrderByDescending(x => x.CreatedAt).ToList() 
         : Model.Where(x => x.UserId == currentUserId).OrderByDescending(x => x.CreatedAt).ToList();
 }
 
 <div class="content-wrapper" style="padding: 2rem;">
-    <h2>@(isAdmin ? "Hantera Notifikationer" : "🔔 Mina Notifikationer")</h2>
+    <h2>@(isAdmin ? "Hantera alla notifikationer" : "Mina Notifikationer")</h2>
 
     @if (!displayList.Any())
     {
-        <div class="alert alert-info">Inga notifikationer just nu.</div>
+        <div class="alert alert-info border-0 shadow-sm">Inga notifikationer just nu.</div>
     }
     else
     {
         <div class="list-group mt-3">
             @foreach (var n in displayList)
             {
-                <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="list-group-item d-flex justify-content-between align-items-center shadow-sm mb-2 border-0">
                     <div>
                         <p class="mb-1 @(n.IsRead ? "text-muted" : "fw-bold")">@n.Message</p>
                         <small class="text-muted">
-                            @(isAdmin ? $"Användare: {n.UserId} | " : "") @n.CreatedAt.ToString("g")
+                            Användare: @(string.IsNullOrEmpty(n.Username) ? "Okänd" : n.Username) | @n.CreatedAt.ToString("yyyy-MM-dd HH:mm")
                         </small>
                     </div>
-                    <form asp-action="Delete" method="post">
-                        <input type="hidden" name="id" value="@n.Id" />
-                        <button type="submit" class="btn btn-sm btn-outline-danger">🗑 Ta bort</button>
-                    </form>
+                    <div class="d-flex gap-2">
+                        @if (!n.IsRead)
+                        {
+                            <form asp-action="MarkAsRead" method="post">
+                                <input type="hidden" name="id" value="@n.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-primary border-0">Markera som läst</button>
+                            </form>
+                        }
+                        <form asp-action="Delete" method="post">
+                            <input type="hidden" name="id" value="@n.Id" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger border-0">Ta bort</button>
+                        </form>
+                    </div>
                 </div>
             }
         </div>

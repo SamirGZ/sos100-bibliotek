@@ -25,10 +25,15 @@ public class NotificationService
         }
     }
 
-    public async Task CreateNotificationAsync(string message, int userId)
+    public async Task CreateNotificationAsync(string message, int userId, string username)
     {
         var client = _httpClientFactory.CreateClient("NotificationsAPI");
-        await client.PostAsJsonAsync("api/notifications", new { Message = message, UserId = userId, IsRead = false });
+        await client.PostAsJsonAsync("api/notifications", new { 
+            Message = message, 
+            UserId = userId, 
+            Username = username, 
+            IsRead = false 
+        });
     }
 
     public async Task DeleteNotificationAsync(int id)
@@ -40,7 +45,8 @@ public class NotificationService
     public async Task MarkAsReadAsync(int id)
     {
         var client = _httpClientFactory.CreateClient("NotificationsAPI");
-        await client.PutAsJsonAsync($"api/notifications/{id}", new { Message = "", IsRead = true });
+        // Uppdaterar status till läst
+        await client.PutAsJsonAsync($"api/notifications/{id}", new { Message = "Markerad som läst", IsRead = true });
     }
 
     public async Task CheckOverdueLoansAsync()
@@ -57,16 +63,14 @@ public class NotificationService
                 if (!loan.IsReturned && loan.ReturnDate < DateTime.Now)
                 {
                     await CreateNotificationAsync(
-                        $"Påminnelse: Lån #{loan.Id} för användare {loan.UserId} är försenat sedan {loan.ReturnDate:d}",
-                        loan.UserId
+                        $"Påminnelse: Lånet för användare {loan.Username} är försenat.",
+                        loan.UserId,
+                        loan.Username
                     );
                 }
             }
         }
-        catch (Exception)
-        {
-            // Loan API är inte tillgänglig just nu
-        }
+        catch (Exception) { }
     }
 }
 
@@ -74,6 +78,7 @@ public class NotificationDto
 {
     public int Id { get; set; }
     public int UserId { get; set; }
+    public string Username { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
     public bool IsRead { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -83,7 +88,7 @@ public class LoanDto
 {
     public int Id { get; set; }
     public int UserId { get; set; }
-    public int BookId { get; set; }
+    public string Username { get; set; } = string.Empty;
     public DateTime ReturnDate { get; set; }
     public bool IsReturned { get; set; }
 }

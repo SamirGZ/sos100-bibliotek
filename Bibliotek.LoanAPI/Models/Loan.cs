@@ -1,13 +1,13 @@
-﻿namespace Bibliotek.LoanAPI.Models;
-
+﻿namespace Bibliotek.LoanAPI.Models; 
 public class Loan
 {
     public int Id { get; set; }
-    public int BookId { get; set; }
+    public int UserId { get; set; }
+    public string Username { get; set; } = string.Empty;
     public string BookTitle { get; set; } = string.Empty;
-    public int UserId { get; set; } 
-    public DateTime LoanDate { get; set; }
-    public DateTime ReturnDate { get; set; }
     public bool IsReturned { get; set; }
-    public List<LoanEvent> History { get; set; } = new List<LoanEvent>();
+    public DateTime LoanDate { get; set; } // Krävs för din Controller
+    public DateTime ReturnDate { get; set; } // Krävs för din Controller
+    
+    public List<LoanEvent> History { get; set; } = new(); 
 }

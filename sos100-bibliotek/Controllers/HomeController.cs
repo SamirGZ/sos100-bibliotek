@@ -18,14 +18,15 @@ public class HomeController : Controller
     public async Task<IActionResult> BorrowBook(int bookId, string bookTitle)
     {
         var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null) return RedirectToAction("Index", "Login");
+        var username = HttpContext.Session.GetString("Username"); // Hämta namnet här!
 
         var client = _httpClientFactory.CreateClient();
         var response = await client.PostAsJsonAsync("http://localhost:5029/api/loan", new { 
             UserId = userId, 
-            BookId = bookId, 
+            Username = username, // Skicka med namnet till API:et
             BookTitle = bookTitle 
         });
+        
 
         if (response.IsSuccessStatusCode)
         {
@@ -66,13 +67,16 @@ public class HomeController : Controller
     public async Task<IActionResult> ReturnBook(int id)
     {
         var userId = HttpContext.Session.GetInt32("UserId");
+        var username = HttpContext.Session.GetString("Username"); // Lägg till detta
         if (userId == null) return RedirectToAction("Index", "Login");
 
         var client = _httpClientFactory.CreateClient();
-        
+    
+        // Skicka med username även vid återlämning för säkerhets skull
         await client.PutAsJsonAsync($"{ApiUrl}/{id}", new { 
             IsReturned = true, 
-            UserId = userId 
+            UserId = userId,
+            Username = username 
         });
 
         return RedirectToAction("MyLoans");
