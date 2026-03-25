@@ -1,51 +1,35 @@
 ﻿@model sos100_bibliotek.Models.BookCatalogue
 
 @{
-    ViewData["Title"] = "Redigera bok";
+    ViewData["Title"] = "Lägg till bok";
 }
 
-<main>
-    <h1>Redigera bok</h1>
+<main class="container mt-4">
     
-    <form asp-action="EditBook" method="post">
-        <input type="hidden" asp-for="Id"/>
-        
-        <div class="UpdateField">
-            <label asp-for="Title"></label>
-            <input asp-for="Title"/>
-        </div>
-        
-        <div class="UpdateField">
-            <label asp-for="Author"></label>
-            <input asp-for="Author"/>
-        </div>
-        
-        <div class="UpdateField">
-            <label asp-for="Year"></label>
-            <input asp-for="Year"/>
-        </div>
-        
-        <div class="UpdateField">
-            <label asp-for="Pages"></label>
-            <input asp-for="Pages"/>
-        </div>
-        
-        <div class="UpdateField">
-            <label asp-for="Language"></label>
-            <input asp-for="Language"/>
-        </div>
-        
-        <div class="UpdateField">
-            <label asp-for="Publisher"></label>
-            <input asp-for="Publisher"/>
-        </div>
-        
-        <div class="UpdateField">
-            <label asp-for="Isbn"></label>
-            <input asp-for="Isbn"/>
-        </div>
-        
-        <button type="submit">Uppdatera boken</button>
-    </form>
+    <h2 class="d-flex justify-content-center">Redigera bok</h2>
+    
+    <div class="d-flex justify-content-center align-items-center mb-4">
+        <form asp-action="EditBook" method="post" class="card col-md-8 h-200 shadow-sm border-0 bg-light p-3">
+            <input type="hidden" asp-for="Id"/>
+            
+            <div>
+                <p><strong>Titel:</strong></p>
+                <input asp-for="Title" class="form-control border border-black"/>
+                <p><strong>Författare:</strong></p>
+                <input asp-for="Author" class="form-control border border-black"/>
+                <p><strong>Utgiven:</strong></p>
+                <input asp-for="Year" class="form-control border border-black"/>
+                <p><strong>Antal sidor:</strong></p>
+                <input asp-for="Pages" class="form-control border border-black"/>
+                <p><strong>Språk:</strong></p>
+                <input asp-for="Language" class="form-control border border-black"/>
+                <p><strong>Förlag:</strong></p>
+                <input asp-for="Publisher" class="form-control border border-black"/>
+                <p><strong>ISBN:</strong></p>
+                <input asp-for="Isbn" class="form-control border border-black"/>
+            </div>
+            <button type="submit">Uppdatera boken</button>
+        </form>
+    </div>
 </main>
 
