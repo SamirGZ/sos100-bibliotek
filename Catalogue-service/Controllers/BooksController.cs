@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Catalogue_service.Models;
 using Catalogue_service.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Catalogue_service.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/[controller]")] // Detta blir api/Books
 public class BooksController : ControllerBase
 {
     private readonly BookCatalogueDbContext _dbContext;
@@ -16,18 +17,43 @@ public class BooksController : ControllerBase
     }
 
     [HttpGet]
-    public BookCatalogue[] GetBooks()
+    public async Task<ActionResult<IEnumerable<BookCatalogue>>> GetBooks()
     {
-        BookCatalogue[] books = _dbContext.Books.ToArray();
-        return books;
+        return await _dbContext.Books.ToListAsync();
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<BookCatalogue>> GetBook(int id)
+    {
+        var book = await _dbContext.Books.FindAsync(id);
+        if (book == null) return NotFound();
+        return book;
     }
 
     [HttpPost]
-    public async Task <IActionResult> PostBooks([FromBody] BookCatalogue book)
+    public async Task<IActionResult> PostBooks([FromBody] BookCatalogue book)
     {
         _dbContext.Books.Add(book);
-       await _dbContext.SaveChangesAsync();
-        
+        await _dbContext.SaveChangesAsync();
         return Ok(book);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> PutBook(int id, [FromBody] BookCatalogue book)
+    {
+        if (id != book.Id) return BadRequest();
+        _dbContext.Entry(book).State = EntityState.Modified;
+        await _dbContext.SaveChangesAsync();
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteBook(int id)
+    {
+        var book = await _dbContext.Books.FindAsync(id);
+        if (book == null) return NotFound();
+        _dbContext.Books.Remove(book);
+        await _dbContext.SaveChangesAsync();
+        return NoContent();
     }
 }

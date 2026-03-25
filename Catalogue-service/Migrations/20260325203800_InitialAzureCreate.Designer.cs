@@ -2,6 +2,7 @@
 using Catalogue_service.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Catalogue_service.Migrations
 {
     [DbContext(typeof(BookCatalogueDbContext))]
-    partial class BookCatalogueDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260325203800_InitialAzureCreate")]
+    partial class InitialAzureCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.5");

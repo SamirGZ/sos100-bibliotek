@@ -7,7 +7,6 @@ public class CatalogueService
 {
     private readonly HttpClient _httpClient;
 
-    // Vi tar emot en färdig HttpClient som redan har rätt URL från Azure
     public CatalogueService(HttpClient httpClient)
     {
         _httpClient = httpClient;
@@ -17,36 +16,33 @@ public class CatalogueService
     {
         try 
         {
-            // Anropar din BooksController
-            var bookcatalogue = await _httpClient.GetFromJsonAsync<BookCatalogue[]>("api/Books");
-            return bookcatalogue ?? Array.Empty<BookCatalogue>();
+            return await _httpClient.GetFromJsonAsync<BookCatalogue[]>("api/Books");
         }
-        catch (Exception)
-        {
-            return Array.Empty<BookCatalogue>();
-        }
+        catch { return Array.Empty<BookCatalogue>(); }
     }
 
-    public async Task<BookCatalogue?> UpdateBookById(int Id)
+    public async Task<BookCatalogue?> UpdateBookById(int id)
     {
-        return await _httpClient.GetFromJsonAsync<BookCatalogue>($"api/UpdateBook/{Id}");
+        try {
+            return await _httpClient.GetFromJsonAsync<BookCatalogue>($"api/Books/{id}");
+        } catch { return null; }
     }
 
     public async Task<bool> UpdateBook(BookCatalogue bookCatalogue)
     {
-        var response = await _httpClient.PutAsJsonAsync($"api/UpdateBook/{bookCatalogue.Id}", bookCatalogue);
+        var response = await _httpClient.PutAsJsonAsync($"api/Books/{bookCatalogue.Id}", bookCatalogue);
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<bool> DeleteBookById(int Id)
+    public async Task<bool> DeleteBookById(int id)
     {
-        var response = await _httpClient.DeleteAsync($"api/DeleteBook/{Id}");
+        var response = await _httpClient.DeleteAsync($"api/Books/{id}");
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> CreateBook(BookCatalogue bookCatalogue)
     {
-        var response = await _httpClient.PostAsJsonAsync($"api/CreateBook", bookCatalogue);
+        var response = await _httpClient.PostAsJsonAsync("api/Books", bookCatalogue);
         return response.IsSuccessStatusCode;
     }
 }

@@ -9,5 +9,5 @@ public class Loan
     public DateTime LoanDate { get; set; } // Krävs för din Controller
     public DateTime ReturnDate { get; set; } // Krävs för din Controller
     
-    public List<LoanEvent> History { get; set; } = new(); 
+    public List<LoanEvent>? History { get; set; } = new();
 }

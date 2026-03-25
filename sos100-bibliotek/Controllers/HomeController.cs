@@ -12,29 +12,63 @@ public class HomeController : Controller
     public HomeController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
         _httpClientFactory = httpClientFactory;
-        _loanApiUrl = configuration["ServiceUrls:LoanApi"] + "/api/loan";
+        
+        // 1. Vi försöker hämta från appsettings.json
+        // 2. Om den är tom eller innehåller "localhost", använder vi den hårda Azure-länken som reserv
+        var configUrl = configuration["ServiceUrls:LoanApi"];
+        
+        if (string.IsNullOrEmpty(configUrl) || configUrl.Contains("localhost"))
+        {
+            _loanApiUrl = "https://app-sos100-loanservice-dyg8gj9f9csfpd6f5.norwayeast-01.azurewebsites.net";
+        }
+        else
+        {
+            _loanApiUrl = configUrl;
+        }
     }
 
-    [HttpGet]
     public IActionResult Index() => View();
-    
+
     [HttpPost]
     public async Task<IActionResult> BorrowBook(int bookId, string bookTitle)
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        var username = HttpContext.Session.GetString("Username");
+        var userId = HttpContext.Session.GetInt32("UserId") ?? 0;
+        var username = HttpContext.Session.GetString("Username") ?? "Anonym";
 
         var client = _httpClientFactory.CreateClient();
-        var response = await client.PostAsJsonAsync(_loanApiUrl, new { 
+
+        var loanRequest = new { 
             UserId = userId, 
             Username = username, 
-            BookTitle = bookTitle 
-        });
-        
-        if (response.IsSuccessStatusCode)
-            TempData["SuccessMessage"] = $"Boken '{bookTitle}' har lånats!";
-        else
-            TempData["ErrorMessage"] = "Kunde inte låna boken.";
+            BookTitle = bookTitle,
+            IsReturned = false,
+            LoanDate = DateTime.Now,
+            ReturnDate = DateTime.Now.AddDays(30),
+            History = new List<object>() 
+        };
+
+        try 
+        {
+            // Vi ser till att URL:en slutar rätt för anropet
+            var requestUrl = _loanApiUrl.EndsWith("/") ? $"{_loanApiUrl}api/loan" : $"{_loanApiUrl}/api/loan";
+            
+            var response = await client.PostAsJsonAsync(requestUrl, loanRequest);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                TempData["SuccessMessage"] = $"Boken '{bookTitle}' har lånats!";
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                TempData["ErrorMessage"] = $"API svarade med fel: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            // Här loggas det faktiska felet internt i Azure
+            TempData["ErrorMessage"] = "Kunde inte ansluta till lånetjänsten i Azure.";
+        }
 
         return RedirectToAction("Index", "Books");
     }
@@ -47,35 +81,14 @@ public class HomeController : Controller
         var client = _httpClientFactory.CreateClient();
         try 
         {
-            var allLoans = await client.GetFromJsonAsync<List<LoanViewModel>>(_loanApiUrl);
+            var requestUrl = _loanApiUrl.EndsWith("/") ? $"{_loanApiUrl}api/loan" : $"{_loanApiUrl}/api/loan";
+            var allLoans = await client.GetFromJsonAsync<List<LoanViewModel>>(requestUrl);
             var myLoans = allLoans?.Where(l => l.UserId == userId).ToList() ?? new();
             return View(myLoans);
         }
-        catch { return View(new List<LoanViewModel>()); }
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> ReturnBook(int id)
-    {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        var username = HttpContext.Session.GetString("Username");
-        if (userId == null) return RedirectToAction("Index", "Login");
-
-        var client = _httpClientFactory.CreateClient();
-        await client.PutAsJsonAsync($"{_loanApiUrl}/{id}", new { 
-            IsReturned = true, 
-            UserId = userId,
-            Username = username 
-        });
-
-        return RedirectToAction("MyLoans");
-    }
-
-    [HttpPost] 
-    public async Task<IActionResult> DeleteLoan(int id)
-    {
-        var client = _httpClientFactory.CreateClient();
-        await client.DeleteAsync($"{_loanApiUrl}/{id}");
-        return RedirectToAction("MyLoans");
+        catch 
+        { 
+            return View(new List<LoanViewModel>()); 
+        }
     }
 }

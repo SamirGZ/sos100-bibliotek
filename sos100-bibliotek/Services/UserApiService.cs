@@ -7,11 +7,13 @@ public class UserApiService
 {
     private readonly HttpClient _httpClient;
 
+    // Konstruktorn tar emot en HttpClient som redan har rätt BaseAddress från Program.cs
     public UserApiService(HttpClient httpClient) => _httpClient = httpClient;
 
     public async Task<UserViewModel?> LoginAndGetUserAsync(string username, string password)
     {
-        var response = await _httpClient.PostAsJsonAsync("/api/auth/login", new { username, password });
+        // Vi tar bort "/" i början för att låta BaseAddress styra helt
+        var response = await _httpClient.PostAsJsonAsync("api/auth/login", new { username, password });
 
         if (response.IsSuccessStatusCode)
         {
@@ -22,7 +24,7 @@ public class UserApiService
 
     public async Task<UserViewModel?> GetUserAsync(string username)
     {
-        var response = await _httpClient.GetAsync($"/api/auth/{username}");
+        var response = await _httpClient.GetAsync($"api/auth/{username}");
         if (!response.IsSuccessStatusCode) return null;
 
         return await response.Content.ReadFromJsonAsync<UserViewModel>();
@@ -30,20 +32,19 @@ public class UserApiService
 
     public async Task<bool> RegisterAsync(string username, string password, string email)
     {
-        var response = await _httpClient.PostAsJsonAsync("/api/auth/register", new { username, password, email });
+        var response = await _httpClient.PostAsJsonAsync("api/auth/register", new { username, password, email });
         return response.IsSuccessStatusCode;
     }
 
-    // Dessa två rader fixar de 2 felen i ProfileController:
     public async Task<bool> DeleteUserAsync(string username)
     {
-        var response = await _httpClient.DeleteAsync($"/api/auth/{username}");
+        var response = await _httpClient.DeleteAsync($"api/auth/{username}");
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> UpdatePasswordAsync(string username, string newPassword)
     {
-        var response = await _httpClient.PutAsJsonAsync("/api/auth/update-password", new { username, newPassword });
+        var response = await _httpClient.PutAsJsonAsync("api/auth/update-password", new { username, newPassword });
         return response.IsSuccessStatusCode;
     }
 }

@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using Bibliotek.LoanAPI.Data;
 using Bibliotek.LoanAPI.Models;
-using System.Net.Http.Json;
 
 namespace Bibliotek.LoanAPI.Controllers;
 
@@ -12,27 +11,29 @@ public class LoanController : ControllerBase
 {
     private readonly LoanDbContext _context;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly string _notificationsApiUrl; // Flyttad från const till variabel
+    private readonly string _notificationsApiUrl;
 
     public LoanController(LoanDbContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
         _context = context;
         _httpClientFactory = httpClientFactory;
-        // Hämtar adressen från Azure/appsettings
-        _notificationsApiUrl = configuration["ServiceUrls:NotificationsApi"] + "/api/notifications";
+        // Säkrare URL-hantering för Notifications
+        var baseNotif = configuration["ServiceUrls:NotificationsApi"]?.TrimEnd('/');
+        _notificationsApiUrl = $"{baseNotif}/api/notifications";
     }
 
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Loan loan)
     {
+        // Kontrollera om boken redan är utlånad
         var isBookTaken = await _context.Loans.AnyAsync(l => 
             l.BookTitle == loan.BookTitle && !l.IsReturned);
 
         if (isBookTaken) return BadRequest("Denna bok är tyvärr redan utlånad.");
 
-        loan.LoanDate = DateTime.Now;
-        loan.ReturnDate = DateTime.Now.AddDays(30);
-        loan.IsReturned = false;
+        // Säkerställ att datum sätts om de saknas
+        loan.LoanDate = loan.LoanDate == default ? DateTime.Now : loan.LoanDate;
+        loan.ReturnDate = loan.ReturnDate == default ? DateTime.Now.AddDays(30) : loan.ReturnDate;
 
         _context.Loans.Add(loan);
         await _context.SaveChangesAsync();
@@ -72,6 +73,9 @@ public class LoanController : ControllerBase
         return NoContent();
     }
 
+    [HttpGet]
+    public async Task<IActionResult> Get() => Ok(await _context.Loans.ToListAsync());
+
     private async Task SendNotification(int userId, string username, string message)
     {
         try 
@@ -87,10 +91,8 @@ public class LoanController : ControllerBase
         }
         catch (Exception ex) 
         { 
-            Console.WriteLine($">>> CONNECTION ERROR: {ex.Message}"); 
+            // Logga felet men låt inte hela lånet krascha om notisen misslyckas
+            Console.WriteLine($">>> NOTIFICATION ERROR: {ex.Message}"); 
         }
     }
-
-    [HttpGet]
-    public async Task<IActionResult> Get() => Ok(await _context.Loans.ToListAsync());
 }

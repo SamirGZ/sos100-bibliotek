@@ -1,49 +1,58 @@
 using Microsoft.EntityFrameworkCore;
 using Bibliotek.LoanAPI.Data;
-using Scalar.AspNetCore; // Se till att denna using finns överst!
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- HÄR REGISTRERAR JAG ALLA TJÄNSTER ---
-
+// 1. DATABAS (SQLite)
 builder.Services.AddDbContext<LoanDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// 2. CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll",
-        policy =>
-        {
-            policy.AllowAnyOrigin()
-                .AllowAnyMethod()
-                .AllowAnyHeader();
-        });
-});
-// Lägg till detta i builder-sektionen
-builder.Services.AddHttpClient("LoanAPI", client => {
-    client.BaseAddress = new Uri("http://localhost:5029/");
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
 });
 
-builder.Services.AddHttpClient("UserAPI", client => {
-    client.BaseAddress = new Uri("http://localhost:5027/");
-});
+// 3. HTTP CLIENTS
+builder.Services.AddHttpClient(); // Standardklient för generella anrop
+
 builder.Services.AddControllers();
-builder.Services.AddHttpClient();
-builder.Services.AddOpenApi(); // Denna genererar JSON-dokumentationen
+builder.Services.AddOpenApi();
 
 var app = builder.Build(); 
 
-// --- HÄR STÄLLER JAG IN HUR APPEN SKA KÖRAS ---
-
-if (app.Environment.IsDevelopment())
+// --- NYTT: SKAPA DATABASEN AUTOMATISKT I AZURE ---
+using (var scope = app.Services.CreateScope())
 {
-    app.MapOpenApi();
-    // DENNA RAD SAKNADES: Den mappar upp det grafiska gränssnittet
-    app.MapScalarApiReference(); 
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<LoanDbContext>();
+        // Denna rad ser till att LoanDatabase.db skapas och att tabellerna finns
+        context.Database.EnsureCreated();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Ett fel uppstod när databasen skulle skapas.");
+    }
 }
+// ------------------------------------------------
 
-app.UseHttpsRedirection();
+// 4. PIPELINE
+app.MapOpenApi();
+app.MapScalarApiReference(); 
+
 app.UseCors("AllowAll");
+// Vi tar bort HttpsRedirection temporärt för att eliminera certifikat-strul i Azure
+// app.UseHttpsRedirection(); 
+
 app.UseAuthorization();
 app.MapControllers();
 

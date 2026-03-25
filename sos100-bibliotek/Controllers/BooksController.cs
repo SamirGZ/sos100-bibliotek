@@ -4,7 +4,7 @@ using sos100_bibliotek.Services;
 
 namespace sos100_bibliotek.Controllers;
 
-public class BooksController: Controller
+public class BooksController : Controller
 {
     private readonly CatalogueService _catalogueService;
 
@@ -13,82 +13,23 @@ public class BooksController: Controller
         _catalogueService = catalogueService;
     }
 
+    // Visar boklistan
     public async Task<IActionResult> Index()
     {
-        var bookCatalogue= await _catalogueService.GetBookCatalogue();
-
-        return View(bookCatalogue);
+        var books = await _catalogueService.GetBookCatalogue();
+        return View(books);
     }
 
-    [HttpGet]
-    public async Task<IActionResult> EditBook(int Id)
-    {
-        var editBook = await _catalogueService.UpdateBookById(Id);
-
-        if (editBook == null)
-        {
-            return NotFound();
-        }
-        
-        return View(editBook);
-    }
+    public IActionResult CreateBook() => View();
 
     [HttpPost]
-    public async Task<IActionResult> EditBook(BookCatalogue bookCatalogue)
+    public async Task<IActionResult> CreateBook(BookCatalogue book)
     {
-        if (!ModelState.IsValid)
+        if (ModelState.IsValid)
         {
-            return View(bookCatalogue);
+            var success = await _catalogueService.CreateBook(book);
+            if (success) return RedirectToAction("Index");
         }
-
-        var Success = await _catalogueService.UpdateBook(bookCatalogue);
-
-        if (!Success)
-        {
-            ModelState.AddModelError("", "Kunde inte uppdatera boken");
-            
-            return View(bookCatalogue);
-        }
-        
-        return RedirectToAction("Index");
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> DeleteBook(int Id)
-    {
-        var Success = await _catalogueService.DeleteBookById(Id);
-
-        if (!Success)
-        {
-            TempData["ErrorMessage"] = "Kunde inte ta bort boken";
-        }
-        
-        return RedirectToAction("Index");
-    }
-
-    [HttpGet]
-    public IActionResult CreateBook()
-    {
-        return View();
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> CreateBook(BookCatalogue bookCatalogue)
-    {
-        if (!ModelState.IsValid)
-        {
-            return View(bookCatalogue);
-        }
-
-        var Success = await _catalogueService.CreateBook(bookCatalogue);
-
-        if (!Success)
-        {
-            ModelState.AddModelError("", "Kunde inte skapa boken");
-            
-            return View(bookCatalogue);
-        }
-        
-        return RedirectToAction("Index");
+        return View(book);
     }
 }

@@ -6,7 +6,7 @@ using System;
 using System.Threading.Tasks;
 using Bibliotek.LoanAPI;
 
-namespace Bibliotek.LoanAPI
+/*namespace Bibliotek.LoanAPI
 {
     // Denna klass skapar själva [ApiKey]-attributet som vi använder i Controllern
     [AttributeUsage(validOn: AttributeTargets.Class | AttributeTargets.Method)]
@@ -37,4 +37,4 @@ namespace Bibliotek.LoanAPI
             await next();
         }
     }
-}
+} */

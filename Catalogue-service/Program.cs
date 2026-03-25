@@ -12,6 +12,7 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<BookCatalogueDbContext>(options =>
 {
+    // Ändra tillbaka till UseSqlite
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
