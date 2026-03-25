@@ -23,19 +23,26 @@ public class LoanController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Loan loan)
     {
-        var alreadyBorrowed = await _context.Loans
-            .AnyAsync(l => l.UserId == loan.UserId && l.BookTitle == loan.BookTitle && !l.IsReturned);
+        // Kontrollerar om boken redan är utlånad till någon användare genom att matcha titel och IsReturned-status.
+        var isBookTaken = await _context.Loans.AnyAsync(l => 
+            l.BookTitle == loan.BookTitle && !l.IsReturned);
 
-        if (alreadyBorrowed) return BadRequest("Boken är redan lånad.");
+        if (isBookTaken) 
+        {
+            return BadRequest("Denna bok är tyvärr redan utlånad till en annan användare.");
+        }
 
+        // Initierar lånets metadata. ReturnDate sätts till standard 30 dagar.
         loan.LoanDate = DateTime.Now;
         loan.ReturnDate = DateTime.Now.AddDays(30);
         loan.IsReturned = false;
-        
+    
+        // Persisterar låneobjektet till databasen.
         _context.Loans.Add(loan);
         await _context.SaveChangesAsync();
 
-        await SendNotification(loan.UserId, $"Nytt lån: {loan.BookTitle}. Återlämnas {loan.ReturnDate.ToShortDateString()}.");
+        // Skickar asynkron notifiering till NotificationsAPI med kopplat UserId.
+        await SendNotification(loan.UserId, $"Du har lånat '{loan.BookTitle}'. Återlämnas senast {loan.ReturnDate.ToShortDateString()}.");
 
         return CreatedAtAction(nameof(Get), new { id = loan.Id }, loan);
     }
@@ -46,6 +53,7 @@ public class LoanController : ControllerBase
         var loan = await _context.Loans.FindAsync(id);
         if (loan == null) return NotFound();
 
+        // Uppdaterar returstatus. UserId behålls från ursprungsobjektet för att säkra notifikationsmottagaren.
         loan.IsReturned = updated.IsReturned;
         await _context.SaveChangesAsync();
 
@@ -57,29 +65,35 @@ public class LoanController : ControllerBase
         return NoContent();
     }
 
-    // Gemensam metod för att skicka notiser säkert
-    private async Task SendNotification(int userId, string message)
-    {
-        try 
-        {
-            var client = _httpClientFactory.CreateClient();
-            client.Timeout = TimeSpan.FromSeconds(3);
-            var notice = new { UserId = userId, Message = message };
-            await client.PostAsJsonAsync(NotificationsApiUrl, notice);
-        }
-        catch (Exception ex) { Console.WriteLine($">>> NOTIFICATION ERROR: {ex.Message}"); }
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> Get() => Ok(await _context.Loans.ToListAsync());
-
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
         var loan = await _context.Loans.FindAsync(id);
         if (loan == null) return NotFound();
+
+        await SendNotification(loan.UserId, $"Lånehistoriken för '{loan.BookTitle}' har raderats.");
+
         _context.Loans.Remove(loan);
         await _context.SaveChangesAsync();
         return NoContent();
     }
+
+    private async Task SendNotification(int userId, string message)
+    {
+        try 
+        {
+            // Etablerar HTTP-klient med kort timeout för att inte blockera huvudprocessen vid nätverksfel.
+            var client = _httpClientFactory.CreateClient();
+            client.Timeout = TimeSpan.FromSeconds(3);
+            await client.PostAsJsonAsync(NotificationsApiUrl, new { UserId = userId, Message = message });
+        }
+        catch (Exception ex) 
+        { 
+            // Loggar fel internt om notifikationstjänsten ej är tillgänglig.
+            Console.WriteLine($">>> NOTIFICATION ERROR: {ex.Message}"); 
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Get() => Ok(await _context.Loans.ToListAsync());
 }

@@ -7,43 +7,34 @@ public class UserApiService
 {
     private readonly HttpClient _httpClient;
 
-    public UserApiService(HttpClient httpClient)
-    {
-        _httpClient = httpClient;
-    }
+    public UserApiService(HttpClient httpClient) => _httpClient = httpClient;
 
-    /// <summary>
-    /// Autentiserar användaren och returnerar användarprofil vid lyckad inloggning.
-    /// </summary>
-    public async Task<UserProfileDto?> LoginAndGetUserAsync(string username, string password)
+    public async Task<UserViewModel?> LoginAndGetUserAsync(string username, string password)
     {
-        var payload = new { username, password };
-        var response = await _httpClient.PostAsJsonAsync("/api/auth/login", payload);
+        var response = await _httpClient.PostAsJsonAsync("/api/auth/login", new { username, password });
 
         if (response.IsSuccessStatusCode)
         {
-            // Deserialiserar responsen till UserProfileDto för att inkludera UserId
-            return await response.Content.ReadFromJsonAsync<UserProfileDto>();
+            return await response.Content.ReadFromJsonAsync<UserViewModel>();
         }
-
         return null;
     }
 
-    public async Task<bool> RegisterAsync(string username, string password, string email)
-    {
-        var payload = new { username, password, email };
-        var response = await _httpClient.PostAsJsonAsync("/api/auth/register", payload);
-        return response.IsSuccessStatusCode;
-    }
-    
-    public async Task<UserProfileDto?> GetUserAsync(string username)
+    public async Task<UserViewModel?> GetUserAsync(string username)
     {
         var response = await _httpClient.GetAsync($"/api/auth/{username}");
         if (!response.IsSuccessStatusCode) return null;
 
-        return await response.Content.ReadFromJsonAsync<UserProfileDto>();
+        return await response.Content.ReadFromJsonAsync<UserViewModel>();
     }
 
+    public async Task<bool> RegisterAsync(string username, string password, string email)
+    {
+        var response = await _httpClient.PostAsJsonAsync("/api/auth/register", new { username, password, email });
+        return response.IsSuccessStatusCode;
+    }
+
+    // Dessa två rader fixar de 2 felen i ProfileController:
     public async Task<bool> DeleteUserAsync(string username)
     {
         var response = await _httpClient.DeleteAsync($"/api/auth/{username}");
@@ -52,8 +43,7 @@ public class UserApiService
 
     public async Task<bool> UpdatePasswordAsync(string username, string newPassword)
     {
-        var payload = new { username, newPassword };
-        var response = await _httpClient.PutAsJsonAsync("/api/auth/update-password", payload);
+        var response = await _httpClient.PutAsJsonAsync("/api/auth/update-password", new { username, newPassword });
         return response.IsSuccessStatusCode;
     }
-}   
+}

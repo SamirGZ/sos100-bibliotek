@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using sos100_bibliotek.Models;
 using System.Net.Http.Json;
+using sos100_bibliotek.Models;
 
 namespace sos100_bibliotek.Controllers;
 
@@ -13,32 +13,41 @@ public class HomeController : Controller
 
     [HttpGet]
     public IActionResult Index() => View();
-
+    
     [HttpPost]
     public async Task<IActionResult> BorrowBook(int bookId, string bookTitle)
     {
         var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null) return RedirectToAction("Index");
+        if (userId == null) return RedirectToAction("Index", "Login");
 
         var client = _httpClientFactory.CreateClient();
-        var response = await client.PostAsJsonAsync(ApiUrl, new { 
+        var response = await client.PostAsJsonAsync("http://localhost:5029/api/loan", new { 
             UserId = userId, 
             BookId = bookId, 
             BookTitle = bookTitle 
         });
 
         if (response.IsSuccessStatusCode)
-            TempData["Message"] = $"Lånet för '{bookTitle}' är klart!";
+        {
+            // Lagrar feedback som raderas efter nästa sidvisning
+            TempData["SuccessMessage"] = $"Boken '{bookTitle}' har lagts till i dina lån!";
+        }
         else
-            TempData["Error"] = "Du har redan lånat denna bok.";
+        {
+            // Hämtar felmeddelandet direkt från API:et (t.ex. "Boken är redan utlånad")
+            var errorReason = await response.Content.ReadAsStringAsync();
+            TempData["ErrorMessage"] = !string.IsNullOrEmpty(errorReason) ? errorReason : "Kunde inte låna boken.";
+        }
 
-        return RedirectToAction("MyLoans");
+        // Skickar tillbaka användaren till boklistan istället för "Mina lån"
+        // Ändra från: return RedirectToAction("Index");
+        return RedirectToAction("Index", "Books");
     }
 
     public async Task<IActionResult> MyLoans()
     {
         var userId = HttpContext.Session.GetInt32("UserId"); 
-        if (userId == null) return RedirectToAction("Index");
+        if (userId == null) return RedirectToAction("Index", "Login");
 
         var client = _httpClientFactory.CreateClient();
         try 
@@ -47,24 +56,25 @@ public class HomeController : Controller
             var myLoans = allLoans?.Where(l => l.UserId == userId).ToList() ?? new List<LoanViewModel>();
             return View(myLoans);
         }
-        catch { return View(new List<LoanViewModel>()); }
+        catch 
+        { 
+            return View(new List<LoanViewModel>()); 
+        }
     }
 
     [HttpPost]
     public async Task<IActionResult> ReturnBook(int id)
     {
         var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null) return RedirectToAction("Index", "Login");
+
         var client = _httpClientFactory.CreateClient();
         
-        // Vi skickar med UserId så att notis-tjänsten vet vem som lämnat tillbaka
-        var response = await client.PutAsJsonAsync($"{ApiUrl}/{id}", new { 
-            IsReturned = true,
+        await client.PutAsJsonAsync($"{ApiUrl}/{id}", new { 
+            IsReturned = true, 
             UserId = userId 
         });
 
-        if (response.IsSuccessStatusCode)
-            TempData["Message"] = "Boken har lämnats tillbaka!";
-            
         return RedirectToAction("MyLoans");
     }
 
@@ -73,7 +83,6 @@ public class HomeController : Controller
     {
         var client = _httpClientFactory.CreateClient();
         await client.DeleteAsync($"{ApiUrl}/{id}");
-        TempData["Message"] = "Lånet har tagits bort.";
         return RedirectToAction("MyLoans");
     }
 }

@@ -18,7 +18,13 @@ public class AuthController : ControllerBase
         if (user == null)
             return Unauthorized(new { message = "Invalid credentials" });
 
-        return Ok(new { message = "Login successful", userId = user.Id, username = user.Username });
+ 
+        return Ok(new { 
+            message = "Login successful", 
+            userId = user.Id, 
+            username = user.Username,
+            email = user.Email 
+        });
     }
 
     [HttpPost("register")]
@@ -38,7 +44,12 @@ public class AuthController : ControllerBase
         if (user == null)
             return NotFound(new { message = "User not found" });
 
-        return Ok(new { user.Username, user.Email });
+    
+        return Ok(new { 
+            userId = user.Id, 
+            username = user.Username, 
+            email = user.Email 
+        });
     }
 
     [HttpDelete("{username}")]
@@ -60,5 +71,4 @@ public class AuthController : ControllerBase
 
         return Ok(new { message = "Password updated successfully" });
     }
-    
 }
