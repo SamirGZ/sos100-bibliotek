@@ -25,6 +25,12 @@
                     
                     <button class="LoanKnapp" type="button">Låna boken</button>
                     <button class="UpdateKnapp" type="button">Redigera</button>
+                    <form asp-controller="Reservations" asp-action="Create" method="post">
+                        <input type="hidden" name="BookId" value="@Books.Id" />
+                        <input type="hidden" name="UserId" value="1" />
+
+                        <button type="submit">Reservera</button>
+                    </form>
                 </div>
             }
         </form>
