@@ -17,28 +17,41 @@ public class LoanController : ControllerBase
     {
         _context = context;
         _httpClientFactory = httpClientFactory;
-        // Säkrare URL-hantering för Notifications
-        var baseNotif = configuration["ServiceUrls:NotificationsApi"]?.TrimEnd('/');
-        _notificationsApiUrl = $"{baseNotif}/api/notifications";
+        
+        // Vi hämtar bas-URL från ExternalServices:NotificationApi
+        var baseNotif = configuration["ExternalServices:NotificationApi"]?.TrimEnd('/');
+        
+        if (string.IsNullOrEmpty(baseNotif))
+        {
+            // Fallback om konfigurationen saknas
+            _notificationsApiUrl = "https://app-sos100-notificationservice.azurewebsites.net/api/notifications";
+        }
+        else
+        {
+            // Vi tvingar fram plural /api/notifications för att matcha din NotificationsService
+            _notificationsApiUrl = $"{baseNotif}/api/notifications";
+        }
     }
+
+    [HttpGet]
+    public async Task<IActionResult> Get() => Ok(await _context.Loans.ToListAsync());
 
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Loan loan)
     {
-        // Kontrollera om boken redan är utlånad
         var isBookTaken = await _context.Loans.AnyAsync(l => 
             l.BookTitle == loan.BookTitle && !l.IsReturned);
 
         if (isBookTaken) return BadRequest("Denna bok är tyvärr redan utlånad.");
 
-        // Säkerställ att datum sätts om de saknas
-        loan.LoanDate = loan.LoanDate == default ? DateTime.Now : loan.LoanDate;
-        loan.ReturnDate = loan.ReturnDate == default ? DateTime.Now.AddDays(30) : loan.ReturnDate;
+        loan.LoanDate = DateTime.Now;
+        loan.ReturnDate = DateTime.Now.AddDays(30);
+        loan.IsReturned = false;
 
         _context.Loans.Add(loan);
         await _context.SaveChangesAsync();
 
-        await SendNotification(loan.UserId, loan.Username, $"Du har lånat '{loan.BookTitle}'.");
+        await SendNotification(loan.UserId, loan.Username, $"Du har lånat boken: {loan.BookTitle}");
 
         return CreatedAtAction(nameof(Get), new { id = loan.Id }, loan);
     }
@@ -66,33 +79,36 @@ public class LoanController : ControllerBase
         var loan = await _context.Loans.FindAsync(id);
         if (loan == null) return NotFound();
 
-        await SendNotification(loan.UserId, loan.Username, $"Lånehistoriken för '{loan.BookTitle}' har raderats.");
+        string title = loan.BookTitle;
+        int uId = loan.UserId;
+        string uName = loan.Username;
 
         _context.Loans.Remove(loan);
         await _context.SaveChangesAsync();
+        
+        await SendNotification(uId, uName, $"Lånehistoriken för '{title}' har raderats.");
+
         return NoContent();
     }
-
-    [HttpGet]
-    public async Task<IActionResult> Get() => Ok(await _context.Loans.ToListAsync());
 
     private async Task SendNotification(int userId, string username, string message)
     {
         try 
         {
             var client = _httpClientFactory.CreateClient();
-            var finalUsername = string.IsNullOrEmpty(username) ? "Användare" : username;
-
-            await client.PostAsJsonAsync(_notificationsApiUrl, new { 
+            var payload = new { 
                 UserId = userId, 
-                Username = finalUsername, 
-                Message = message 
-            });
+                Username = username ?? "Användare", 
+                Message = message,
+                IsRead = false,
+                CreatedAt = DateTime.Now
+            };
+
+            await client.PostAsJsonAsync(_notificationsApiUrl, payload);
         }
         catch (Exception ex) 
         { 
-            // Logga felet men låt inte hela lånet krascha om notisen misslyckas
-            Console.WriteLine($">>> NOTIFICATION ERROR: {ex.Message}"); 
+            Console.WriteLine($">>> NOTIFIKATIONSFEL: {ex.Message}"); 
         }
     }
 }

@@ -10,11 +10,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+// Tvinga Azure att skapa databasfilen vid start
+using (var scope = app.Services.CreateScope())
 {
-    app.MapOpenApi();
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    context.Database.EnsureCreated();
 }
 
+app.MapOpenApi();
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
