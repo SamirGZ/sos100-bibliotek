@@ -88,6 +88,15 @@ public class ReservationsController : ControllerBase
 
         return NoContent();
     }
+    [HttpGet("user/{userId}")]
+    public async Task<ActionResult<IEnumerable<Reservation>>> GetUserReservations(int userId)
+    {
+        var reservations = await _context.Reservations
+            .Where(r => r.UserId == userId)
+            .ToListAsync();
+
+        return reservations;
+    }
 
     private bool ReservationExists(int id)
     {
