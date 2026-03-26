@@ -17,6 +17,7 @@ public class ReservationsController : Controller
 
     public async Task<IActionResult> Index()
     {
+        ViewBag.IsAdmin = true;
         var response = await _httpClient.GetAsync("api/reservations");
 
         if (!response.IsSuccessStatusCode)
@@ -37,6 +38,7 @@ public class ReservationsController : Controller
 
     public async Task<IActionResult> UserReservations(int userId)
     {
+        ViewBag.IsAdmin = false;
         var response = await _httpClient.GetAsync($"api/reservations/user/{userId}");
 
         if (!response.IsSuccessStatusCode)
