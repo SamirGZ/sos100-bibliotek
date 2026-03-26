@@ -17,6 +17,12 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+builder.Services.AddHttpClient<ReservationService>(client =>
+{
+    var url = builder.Configuration["ServiceUrls:ReservationApi"];
+    client.BaseAddress = new Uri(url.EndsWith("/") ? url : url + "/");
+});
+
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddHttpClient<UserApiService>(client =>

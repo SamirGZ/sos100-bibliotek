@@ -1,89 +1,70 @@
-using System.Text;
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using sos100_bibliotek.Models;
+using sos100_bibliotek.Services;
 
 namespace sos100_bibliotek.Controllers;
 
 public class ReservationsController : Controller
 {
-    private readonly HttpClient _httpClient;
+    private readonly ReservationService _reservationService;
 
-    public ReservationsController()
+    public ReservationsController(ReservationService reservationService)
     {
-        _httpClient = new HttpClient();
-        _httpClient.BaseAddress = new Uri("http://localhost:5115/");
+        _reservationService = reservationService;
     }
 
     public async Task<IActionResult> Index()
     {
-        ViewBag.IsAdmin = true;
-        var response = await _httpClient.GetAsync("api/reservations");
+        var userId = HttpContext.Session.GetInt32("UserId");
 
-        if (!response.IsSuccessStatusCode)
+        if (userId == null)
         {
-            return View(new List<ReservationViewModel>());
+            return RedirectToAction("Index", "Login");
         }
 
-        var json = await response.Content.ReadAsStringAsync();
+        var reservations = await _reservationService.GetReservationsAsync();
 
-        var reservations = JsonSerializer.Deserialize<List<ReservationViewModel>>(json,
-            new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
+        var myReservations = reservations
+            .Where(r => r.UserId == userId.Value)
+            .OrderByDescending(r => r.ReservationDate)
+            .ToList();
 
-        return View(reservations ?? new List<ReservationViewModel>());
-    }
-
-    public async Task<IActionResult> UserReservations(int userId)
-    {
-        ViewBag.IsAdmin = false;
-        var response = await _httpClient.GetAsync($"api/reservations/user/{userId}");
-
-        if (!response.IsSuccessStatusCode)
-        {
-            return View("Index", new List<ReservationViewModel>());
-        }
-
-        var json = await response.Content.ReadAsStringAsync();
-
-        var reservations = JsonSerializer.Deserialize<List<ReservationViewModel>>(json,
-            new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-        return View("Index", reservations ?? new List<ReservationViewModel>());
-    }
-
-    public IActionResult Create()
-    {
-        return View();
+        return View(myReservations);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(ReservationViewModel reservation)
+    public async Task<IActionResult> Create(int bookId)
     {
-        reservation.ReservationDate = DateTime.UtcNow;
+        var userId = HttpContext.Session.GetInt32("UserId");
 
-        var json = JsonSerializer.Serialize(reservation);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var response = await _httpClient.PostAsync("api/reservations", content);
-
-        if (!response.IsSuccessStatusCode)
+        if (userId == null)
         {
-            return View(reservation);
+            return RedirectToAction("Index", "Login");
         }
 
+        var reservation = new ReservationViewModel
+        {
+            ItemId = bookId,
+            UserId = userId.Value,
+            Status = "Active"
+        };
+
+        var success = await _reservationService.CreateReservationAsync(reservation);
+
+        if (!success)
+        {
+            TempData["ErrorMessage"] = "Det gick inte att reservera boken.";
+            return RedirectToAction("Index", "Books");
+        }
+
+        TempData["SuccessMessage"] = "Boken reserverades och finns nu under Mina reservationer.";
         return RedirectToAction("Index");
     }
 
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {
-        await _httpClient.DeleteAsync($"api/reservations/{id}");
+        await _reservationService.DeleteReservationAsync(id);
         return RedirectToAction("Index");
     }
 }
