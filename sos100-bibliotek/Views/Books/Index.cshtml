@@ -55,7 +55,10 @@
                                     <button class="btn btn-primary w-100 LoanKnapp" type="submit">Låna boken</button>
                                 </form>
                             
-                                <a asp-controller="Reservations" asp-action="Index" class="btn btn-primary w-100">Reservera boken</a>
+                                <form asp-controller="Reservations" asp-action="CreateFromBook" method="post">
+                                    <input type="hidden" name="itemId" value="@Books.Id" />
+                                    <button class="btn btn-primary w-100" type="submit">Reservera boken</button>
+                                </form>
                             </div>
                         }
                         else
