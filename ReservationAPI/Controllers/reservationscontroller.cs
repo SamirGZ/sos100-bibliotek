@@ -1,105 +1,96 @@
+using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ReservationApi.Data;
-using ReservationApi.Models;
+using sos100_bibliotek.Models;
 
-namespace ReservationApi.Controllers;
+namespace sos100_bibliotek.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-public class ReservationsController : ControllerBase
+public class ReservationsController : Controller
 {
-    private readonly ReservationDbContext _context;
+    private readonly HttpClient _httpClient;
 
-    public ReservationsController(ReservationDbContext context)
+    public ReservationsController()
     {
-        _context = context;
+        _httpClient = new HttpClient();
+        _httpClient.BaseAddress = new Uri("http://localhost:5115/");
     }
 
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<Reservation>>> GetReservations()
+    // 🔵 ADMIN - ser alla reservationer
+    public async Task<IActionResult> Index()
     {
-        return await _context.Reservations.ToListAsync();
-    }
+        ViewBag.IsAdmin = true;
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Reservation>> GetReservation(int id)
-    {
-        var reservation = await _context.Reservations.FindAsync(id);
+        var response = await _httpClient.GetAsync("api/reservations");
 
-        if (reservation == null)
+        if (!response.IsSuccessStatusCode)
         {
-            return NotFound();
+            return View(new List<ReservationViewModel>());
         }
 
-        return reservation;
+        var json = await response.Content.ReadAsStringAsync();
+
+        var reservations = JsonSerializer.Deserialize<List<ReservationViewModel>>(json,
+            new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+        return View(reservations ?? new List<ReservationViewModel>());
+    }
+
+    // 🟢 USER - ser sina egna
+    public async Task<IActionResult> UserReservations(int userId)
+    {
+        ViewBag.IsAdmin = false;
+
+        var response = await _httpClient.GetAsync($"api/reservations/user/{userId}");
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return View("Index", new List<ReservationViewModel>());
+        }
+
+        var json = await response.Content.ReadAsStringAsync();
+
+        var reservations = JsonSerializer.Deserialize<List<ReservationViewModel>>(json,
+            new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+        return View("Index", reservations ?? new List<ReservationViewModel>());
+    }
+
+    
+    [HttpPost]
+    public async Task<IActionResult> Create(int BookId, int UserId, string Status)
+    {
+        var reservation = new ReservationViewModel
+        {
+            BookId = BookId,
+            UserId = UserId,
+            Status = Status,
+            ReservationDate = DateTime.UtcNow
+        };
+
+        var json = JsonSerializer.Serialize(reservation);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await _httpClient.PostAsync("api/reservations", content);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return RedirectToAction("Index");
+        }
+
+        // 🔥 Efter klick → gå till reservationssidan
+        return RedirectToAction("UserReservations", new { userId = UserId });
     }
 
     [HttpPost]
-    public async Task<ActionResult<Reservation>> CreateReservation(Reservation reservation)
+    public async Task<IActionResult> Delete(int id)
     {
-        reservation.ReservationDate = DateTime.UtcNow;
-
-        _context.Reservations.Add(reservation);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetReservation), new { id = reservation.Id }, reservation);
-    }
-
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateReservation(int id, Reservation reservation)
-    {
-        if (id != reservation.Id)
-        {
-            return BadRequest();
-        }
-
-        _context.Entry(reservation).State = EntityState.Modified;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!ReservationExists(id))
-            {
-                return NotFound();
-            }
-
-            throw;
-        }
-
-        return NoContent();
-    }
-
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteReservation(int id)
-    {
-        var reservation = await _context.Reservations.FindAsync(id);
-
-        if (reservation == null)
-        {
-            return NotFound();
-        }
-
-        _context.Reservations.Remove(reservation);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
-    }
-    [HttpGet("user/{userId}")]
-    public async Task<ActionResult<IEnumerable<Reservation>>> GetUserReservations(int userId)
-    {
-        var reservations = await _context.Reservations
-            .Where(r => r.UserId == userId)
-            .ToListAsync();
-
-        return reservations;
-    }
-
-    private bool ReservationExists(int id)
-    {
-        return _context.Reservations.Any(e => e.Id == id);
+        await _httpClient.DeleteAsync($"api/reservations/{id}");
+        return RedirectToAction("Index");
     }
 }

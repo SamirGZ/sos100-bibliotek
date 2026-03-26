@@ -1,4 +1,5 @@
 namespace sos100_bibliotek.Models;
+using sos100_bibliotek.Models;
 
 public class ReservationViewModel
 {

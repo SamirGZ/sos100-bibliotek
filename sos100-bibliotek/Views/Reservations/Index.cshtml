@@ -17,17 +17,20 @@
                 <p>@descriptionText</p>
             </div>
 
-            @if (isAdmin)
-            {
-                <a asp-controller="Reservations" asp-action="Create" class="create-btn">Ny reservation</a>
-            }
+            <div class="page-header">
+                <div>
+                    <span class="page-label">Bibliotekssystem</span>
+                    <h1>@titleText</h1>
+                    <p>@descriptionText</p>
+                </div>
+            </div>
         </div>
 
         @if (Model == null || !Model.Any())
         {
             <div class="empty-state">
                 <h3>Inga reservationer ännu</h3>
-                <p>Det finns just nu inga registrerade reservationer.</p>
+                <p>Du har just nu inga registrerade reservationer.</p>
             </div>
         }
         else
@@ -51,7 +54,7 @@
 
                         <tr>
                             <td>#@reservation.Id</td>
-                            <td>Bok @reservation.BookId</td>
+                            <td>Bok ID: @reservation.BookId</td>
                             <td>Användare @reservation.UserId</td>
                             <td>@reservation.ReservationDate.ToString("yyyy-MM-dd HH:mm")</td>
                             <td>
