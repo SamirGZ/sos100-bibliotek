@@ -95,7 +95,10 @@ public class LoanController : ControllerBase
     {
         try 
         {
-            var client = _httpClientFactory.CreateClient();
+            using var client = new HttpClient();
+            // Denna URL MÅSTE vara exakt den du fick från Azure Portal
+            var url = "https://app-sos100-notificationservice.azurewebsites.net/api/notifications";
+
             var payload = new { 
                 UserId = userId, 
                 Username = username ?? "Användare", 
@@ -104,11 +107,13 @@ public class LoanController : ControllerBase
                 CreatedAt = DateTime.Now
             };
 
-            await client.PostAsJsonAsync(_notificationsApiUrl, payload);
+            // Skicka anropet asynkront
+            await client.PostAsJsonAsync(url, payload);
         }
         catch (Exception ex) 
         { 
-            Console.WriteLine($">>> NOTIFIKATIONSFEL: {ex.Message}"); 
+            // Detta skriver till Log Stream om anropet misslyckas
+            Console.WriteLine($">>> KUNDE INTE SKICKA NOTIS: {ex.Message}"); 
         }
     }
 }
