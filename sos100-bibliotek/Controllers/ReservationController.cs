@@ -17,6 +17,12 @@ public class ReservationsController : Controller
 
     public async Task<IActionResult> Index()
     {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null)
+        {
+            return RedirectToAction("Index", "Login");
+        }
+
         var response = await _httpClient.GetAsync("api/reservations");
 
         if (!response.IsSuccessStatusCode)
@@ -32,7 +38,42 @@ public class ReservationsController : Controller
                 PropertyNameCaseInsensitive = true
             });
 
-        return View(reservations ?? new List<ReservationViewModel>());
+        var myReservations = reservations?
+            .Where(r => r.UserId == userId)
+            .ToList() ?? new List<ReservationViewModel>();
+
+        return View(myReservations);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateFromBook(int itemId)
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null)
+        {
+            return RedirectToAction("Index", "Login");
+        }
+
+        var reservation = new ReservationViewModel
+        {
+            ItemId = itemId,
+            UserId = userId.Value,
+            Status = "Active"
+        };
+
+        var json = JsonSerializer.Serialize(reservation);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await _httpClient.PostAsync("api/reservations", content);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            TempData["ErrorMessage"] = "Kunde inte skapa reservationen.";
+            return RedirectToAction("Index", "Books");
+        }
+
+        TempData["SuccessMessage"] = "Boken har reserverats!";
+        return RedirectToAction("Index");
     }
 
     public IActionResult Create()
