@@ -2,15 +2,18 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using sos100_bibliotek.Models;
+using sos100_bibliotek.Services;
 
 namespace sos100_bibliotek.Controllers;
 
 public class ReservationsController : Controller
 {
     private readonly HttpClient _httpClient;
+    private readonly CatalogueService _catalogueService;
 
-    public ReservationsController()
+    public ReservationsController(CatalogueService catalogueService)
     {
+        _catalogueService = catalogueService;
         _httpClient = new HttpClient();
         _httpClient.BaseAddress = new Uri("http://localhost:5115/");
     }
@@ -41,6 +44,19 @@ public class ReservationsController : Controller
         var myReservations = reservations?
             .Where(r => r.UserId == userId)
             .ToList() ?? new List<ReservationViewModel>();
+
+        var books = await _catalogueService.GetBookCatalogue();
+
+        foreach (var reservation in myReservations)
+        {
+            var book = books.FirstOrDefault(b => b.Id == reservation.ItemId);
+
+            if (book != null)
+            {
+                reservation.BookTitle = book.Title;
+                reservation.BookAuthor = book.Author;
+            }
+        }
 
         return View(myReservations);
     }
