@@ -35,6 +35,26 @@ public class ReservationsController : Controller
         return View(reservations ?? new List<ReservationViewModel>());
     }
 
+    public async Task<IActionResult> UserReservations(int userId)
+    {
+        var response = await _httpClient.GetAsync($"api/reservations/user/{userId}");
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return View("Index", new List<ReservationViewModel>());
+        }
+
+        var json = await response.Content.ReadAsStringAsync();
+
+        var reservations = JsonSerializer.Deserialize<List<ReservationViewModel>>(json,
+            new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+        return View("Index", reservations ?? new List<ReservationViewModel>());
+    }
+
     public IActionResult Create()
     {
         return View();
@@ -43,10 +63,17 @@ public class ReservationsController : Controller
     [HttpPost]
     public async Task<IActionResult> Create(ReservationViewModel reservation)
     {
+        reservation.ReservationDate = DateTime.UtcNow;
+
         var json = JsonSerializer.Serialize(reservation);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        await _httpClient.PostAsync("api/reservations", content);
+        var response = await _httpClient.PostAsync("api/reservations", content);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return View(reservation);
+        }
 
         return RedirectToAction("Index");
     }
