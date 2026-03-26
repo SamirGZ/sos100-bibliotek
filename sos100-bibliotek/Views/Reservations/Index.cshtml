@@ -1,22 +1,33 @@
 @model List<sos100_bibliotek.Models.ReservationViewModel>
 
+@{
+    var isAdmin = ViewBag.IsAdmin != null && (bool)ViewBag.IsAdmin;
+    var titleText = isAdmin ? "Alla reservationer" : "Mina reservationer";
+    var descriptionText = isAdmin
+        ? "Här kan du se alla användares reservationer och deras status."
+        : "Här kan du se dina aktuella reservationer och deras status.";
+}
+
 <div class="reservation-page">
     <div class="reservation-card">
         <div class="page-header">
             <div>
                 <span class="page-label">Bibliotekssystem</span>
-                <h1>Mina reservationer</h1>
-                <p>Här kan du se dina aktuella reservationer och deras status.</p>
+                <h1>@titleText</h1>
+                <p>@descriptionText</p>
             </div>
 
-            <a asp-controller="Reservations" asp-action="Create" class="create-btn">Ny reservation</a>
+            @if (isAdmin)
+            {
+                <a asp-controller="Reservations" asp-action="Create" class="create-btn">Ny reservation</a>
+            }
         </div>
 
         @if (Model == null || !Model.Any())
         {
             <div class="empty-state">
                 <h3>Inga reservationer ännu</h3>
-                <p>Du har just nu inga registrerade reservationer.</p>
+                <p>Det finns just nu inga registrerade reservationer.</p>
             </div>
         }
         else
@@ -25,10 +36,10 @@
                 <table class="reservation-table">
                     <thead>
                     <tr>
-                        <th>Bokningsnummer</th>
-                        <th>Objekt</th>
+                        <th>Reservationsnummer</th>
+                        <th>Bok</th>
                         <th>Användare</th>
-                        <th>Bokningsdatum</th>
+                        <th>Reservationsdatum</th>
                         <th>Status</th>
                         <th>Åtgärd</th>
                     </tr>
@@ -40,7 +51,7 @@
 
                         <tr>
                             <td>#@reservation.Id</td>
-                            <td>Objekt @reservation.ItemId</td>
+                            <td>Bok @reservation.BookId</td>
                             <td>Användare @reservation.UserId</td>
                             <td>@reservation.ReservationDate.ToString("yyyy-MM-dd HH:mm")</td>
                             <td>
@@ -199,6 +210,7 @@
         margin: 0;
         color: #6b7280;
     }
+
     .delete-btn {
         background-color: #dc2626;
         color: white;
