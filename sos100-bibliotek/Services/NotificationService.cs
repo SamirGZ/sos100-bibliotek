@@ -38,10 +38,16 @@ public class NotificationService
     {
         try
         {
-            var client = _httpClientFactory.CreateClient("NotificationsAPI");
-            return await client.GetFromJsonAsync<List<NotificationDto>>("api/notifications") ?? new();
+            using var client = new HttpClient(); // Använd en ren klient för demon
+            var url = "https://app-sos100-notificationservice.azurewebsites.net/api/notifications";
+        
+            return await client.GetFromJsonAsync<List<NotificationDto>>(url) ?? new();
         }
-        catch { return new List<NotificationDto>(); }
+        catch (Exception ex) 
+        { 
+            Console.WriteLine("Hämtningsfel: " + ex.Message);
+            return new List<NotificationDto>(); 
+        }
     }
 
     public async Task CheckOverdueLoansAsync()

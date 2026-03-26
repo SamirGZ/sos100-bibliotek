@@ -20,16 +20,24 @@ public class BooksController : Controller
         return View(books);
     }
 
+    // Visar det tomma formuläret för att lägga till en ny bok
     public IActionResult CreateBook() => View();
 
     [HttpPost]
     public async Task<IActionResult> CreateBook(BookCatalogue book)
     {
+        // Kollar automatiskt att alla [Required]-fält och liknande i modellen är korrekt ifyllda 
+        // innan vi ens försöker anropa API:et. Sparar onödiga nätverksanrop
         if (ModelState.IsValid)
         {
             var success = await _catalogueService.CreateBook(book);
+        
+            // Gick det bra i API:et skickas vi tillbaka till boklistan
             if (success) return RedirectToAction("Index");
         }
+    
+        // Viktig UX-detalj: Om valideringen eller API:et misslyckas returnerar vi vyn MED bok-objektet.
+        // Då slipper användaren fylla i alla fält på nytt
         return View(book);
     }
 }

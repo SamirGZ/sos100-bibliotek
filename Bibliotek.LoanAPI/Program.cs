@@ -4,11 +4,11 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. DATABAS (SQLite)
+// Använder SQLite (smidigt i Azure så slipper vi en separat db-server)
 builder.Services.AddDbContext<LoanDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2. CORS
+// Tillåter alla anrop pga port-strul mellan frontend och backend
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -19,38 +19,37 @@ builder.Services.AddCors(options =>
     });
 });
 
-// 3. HTTP CLIENTS
-builder.Services.AddHttpClient(); // Standardklient för generella anrop
+// Viktigt: AddHttpClient förhindrar port-utmattning mot externa API:er
+builder.Services.AddHttpClient(); 
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var app = builder.Build(); 
 
-// --- NYTT: SKAPA DATABASEN AUTOMATISKT I AZURE ---
+// --- Fix för molnet ---
+// Skapar databasen automatiskt vid uppstart eftersom vi inte kan köra EF-migreringar manuellt i Azure
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
         var context = services.GetRequiredService<LoanDbContext>();
-        // Denna rad ser till att LoanDatabase.db skapas och att tabellerna finns
         context.Database.EnsureCreated();
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Ett fel uppstod när databasen skulle skapas.");
+        logger.LogError(ex, "Kunde inte skapa databasen.");
     }
 }
-// ------------------------------------------------
 
-// 4. PIPELINE
 app.MapOpenApi();
 app.MapScalarApiReference(); 
 
 app.UseCors("AllowAll");
-// Vi tar bort HttpsRedirection temporärt för att eliminera certifikat-strul i Azure
+
+// Utkommenterad medvetet. Azures lastbalanserare strular ibland om vi tvingar HTTPS här.
 // app.UseHttpsRedirection(); 
 
 app.UseAuthorization();

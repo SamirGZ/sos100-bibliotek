@@ -5,6 +5,7 @@ namespace Bibliotek.LoanAPI.Data;
 
 public class LoanDbContext : DbContext
 {
+    // Tar in db-inställningar via DI (t.ex. att vi kör SQLite)
     public LoanDbContext(DbContextOptions<LoanDbContext> options) : base(options) { }
 
     public DbSet<Loan> Loans { get; set; }
@@ -14,13 +15,13 @@ public class LoanDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Vi säger till EF att UserId bara är ett vanligt heltal.
-        // Inga kopplingar till andra tabeller = Inga Foreign Key-fel!
+        // UserId är bara en vanlig int. 
+        // Vi skapar INGEN Foreign Key eftersom användarna ligger i en helt annan databas (UserAPI).
         modelBuilder.Entity<Loan>()
             .Property(l => l.UserId)
             .IsRequired();
             
-        // Fixar kopplingen till historiken (denna vill vi ha kvar)
+        // Kopplar ihop historikloggen (LoanEvent) med det specifika lånet (1 till många)
         modelBuilder.Entity<LoanEvent>()
             .HasOne(e => e.Loan)
             .WithMany(l => l.History)
