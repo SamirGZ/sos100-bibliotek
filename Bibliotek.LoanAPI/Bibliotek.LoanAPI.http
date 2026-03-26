@@ -4,7 +4,7 @@
 @CatalogAPI = http://localhost:5149
 @ReservationAPI = http://localhost:5115
 @NotificationAPI = http://localhost:5235
-@ApiKey = Shahin415
+@ApiKey = CHANGE_ME
 
 ### STEG 0a: Lägg till boken i Catalog
 # OBS: Deras controller har ingen "api/" i sin route, så vi anropar direkt /books

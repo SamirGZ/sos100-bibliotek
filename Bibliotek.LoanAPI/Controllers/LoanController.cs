@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Bibliotek.LoanAPI.Data;
 using Bibliotek.LoanAPI.Models;
@@ -36,6 +36,7 @@ public class LoanController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Get() => Ok(await _context.Loans.ToListAsync());
 
+    // Kräver X-Api-Key från frontenden för att stoppa obehöriga    [ApiKeyAuthorize]
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Loan loan)
     {
@@ -61,6 +62,7 @@ public class LoanController : ControllerBase
         return CreatedAtAction(nameof(Get), new { id = loan.Id }, loan);
     }
 
+    [ApiKeyAuthorize] // Skyddar uppdateringar så ingen kan ändra data utifrån
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(int id, [FromBody] Loan updated)
     {
@@ -80,6 +82,7 @@ public class LoanController : ControllerBase
         return NoContent(); // 204 No Content är standard för en lyckad PUT utan returdata.
     }
 
+    [ApiKeyAuthorize] // Låst endpoint: Kräver giltig API-nyckel
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
@@ -100,7 +103,7 @@ public class LoanController : ControllerBase
         return NoContent();
     }
 
-    private async Task SendNotification(int userId, string username, string message)
+    private async Task SendNotification(int userId, string username, string message)    
     {
         // Try-catch är kritiskt här. Om notifikationstjänsten är nere (t.ex. pga Azure Quota) 
         // får det INTE krascha hela låne-processen. Kärnfunktionaliteten (lånet) ska prioriteras.

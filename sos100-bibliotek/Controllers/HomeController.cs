@@ -8,6 +8,7 @@ public class HomeController : Controller
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly string _loanApiUrl;
+    private readonly string? _loanApiKey;
 
     public HomeController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
@@ -24,6 +25,10 @@ public class HomeController : Controller
         {
             _loanApiUrl = configUrl;
         }
+
+        // API-nyckel för att låsta delar av LoanAPI (VG-krav).
+        // Bör sättas i Azure App Settings som t.ex. ApiSettings__LoanApiKey.
+        _loanApiKey = configuration["ApiSettings:LoanApiKey"];
     }
 
     public IActionResult Index() => View();
@@ -36,6 +41,12 @@ public class HomeController : Controller
         var userId = HttpContext.Session.GetInt32("UserId") ?? 0;
         var username = HttpContext.Session.GetString("Username") ?? "Anonym";
         var client = _httpClientFactory.CreateClient();
+
+        if (!string.IsNullOrWhiteSpace(_loanApiKey))
+        {
+            client.DefaultRequestHeaders.Remove("X-Api-Key");
+            client.DefaultRequestHeaders.Add("X-Api-Key", _loanApiKey);
+        }
 
         // Bygger payloaden som skickas till LoanAPI. 
         var loanRequest = new { 
@@ -87,6 +98,12 @@ public class HomeController : Controller
         var client = _httpClientFactory.CreateClient();
         try 
         {
+            if (!string.IsNullOrWhiteSpace(_loanApiKey))
+            {
+                client.DefaultRequestHeaders.Remove("X-Api-Key");
+                client.DefaultRequestHeaders.Add("X-Api-Key", _loanApiKey);
+            }
+
             var requestUrl = _loanApiUrl.EndsWith("/") ? $"{_loanApiUrl}api/loan/{id}" : $"{_loanApiUrl}/api/loan/{id}";
             
             // Skickar en PUT med IsReturned = true. Vi raderar alltså inte lånet, 
@@ -107,6 +124,12 @@ public class HomeController : Controller
         var client = _httpClientFactory.CreateClient();
         try 
         {
+            if (!string.IsNullOrWhiteSpace(_loanApiKey))
+            {
+                client.DefaultRequestHeaders.Remove("X-Api-Key");
+                client.DefaultRequestHeaders.Add("X-Api-Key", _loanApiKey);
+            }
+
             var requestUrl = _loanApiUrl.EndsWith("/") ? $"{_loanApiUrl}api/loan/{id}" : $"{_loanApiUrl}/api/loan/{id}";
             await client.DeleteAsync(requestUrl);
         }

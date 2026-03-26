@@ -23,6 +23,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddHttpClient(); 
 
 builder.Services.AddControllers();
+builder.Services.AddAuthorization();
 builder.Services.AddOpenApi();
 
 var app = builder.Build(); 
@@ -49,8 +50,6 @@ app.MapScalarApiReference();
 
 app.UseCors("AllowAll");
 
-// Utkommenterad medvetet. Azures lastbalanserare strular ibland om vi tvingar HTTPS här.
-// app.UseHttpsRedirection(); 
 
 app.UseAuthorization();
 app.MapControllers();
