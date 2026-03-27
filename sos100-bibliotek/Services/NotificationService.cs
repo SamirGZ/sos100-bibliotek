@@ -39,7 +39,7 @@ public class NotificationService
         try
         {
             using var client = new HttpClient(); // Använd en ren klient för demon
-            var url = "https://app-sos100-notificationservice.azurewebsites.net/api/notifications";
+            var url = "https://app-sos100-notificationsservice.azurewebsites.net/api/notifications";
         
             return await client.GetFromJsonAsync<List<NotificationDto>>(url) ?? new();
         }

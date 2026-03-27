@@ -24,7 +24,7 @@ public class LoanController : ControllerBase
         if (string.IsNullOrEmpty(baseNotif))
         {
             // Fallback-URL om konfigurationen saknas, förhindrar att API:et kraschar vid uppstart.
-            _notificationsApiUrl = "https://app-sos100-notificationservice.azurewebsites.net/api/notifications";
+            _notificationsApiUrl = "https://app-sos100-notificationsservice.azurewebsites.net/api/notifications";
         }
         else
         {
@@ -110,7 +110,7 @@ public class LoanController : ControllerBase
         try 
         {
             using var client = new HttpClient();
-            var url = "https://app-sos100-notificationservice.azurewebsites.net/api/notifications";
+            var url = "https://app-sos100-notificationsservice.azurewebsites.net/api/notifications";
 
             // Bygger DTO-objektet som mottagaren (NotificationsAPI) förväntar sig.
             var payload = new { 
