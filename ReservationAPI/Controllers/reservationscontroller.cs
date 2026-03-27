@@ -17,9 +17,30 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Reservation>>> GetReservations()
+    public async Task<ActionResult<IEnumerable<ReservationDto>>> GetReservations()
     {
-        return await _context.Reservations.ToListAsync();
+        var reservations = await _context.Reservations.ToListAsync();
+        var result = new List<ReservationDto>();
+
+        foreach (var r in reservations)
+        {
+            // ⚠️ TEMPORÄR LÖSNING (enkelt)
+            result.Add(new ReservationDto
+            {
+                Id = r.Id,
+                UserId = r.UserId,
+                UserName = $"User {r.UserId}",
+
+                BookId = r.ItemId,
+                BookTitle = $"Book {r.ItemId}",
+                Author = "Unknown",
+
+                ReservationDate = r.ReservationDate,
+                Status = r.Status
+            });
+        }
+
+        return Ok(result);
     }
 
     [HttpGet("{id}")]

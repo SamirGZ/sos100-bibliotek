@@ -1,3 +1,5 @@
+using ReservationApi.Models;
+
 namespace ReservationApi.Models;
 
 public class ReservationDto
