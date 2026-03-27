@@ -11,11 +11,13 @@ public class ReservationsController : Controller
     private readonly HttpClient _httpClient;
     private readonly CatalogueService _catalogueService;
 
-    public ReservationsController(CatalogueService catalogueService)
+    public ReservationsController(CatalogueService catalogueService, IConfiguration configuration)
     {
         _catalogueService = catalogueService;
         _httpClient = new HttpClient();
-        _httpClient.BaseAddress = new Uri("http://localhost:5115/");
+
+        var reservationApiUrl = configuration["ServiceUrls:ReservationApi"] ?? "http://localhost:5115/";
+        _httpClient.BaseAddress = new Uri(reservationApiUrl.EndsWith("/") ? reservationApiUrl : reservationApiUrl + "/");
     }
 
     public async Task<IActionResult> Index()
