@@ -1,14 +1,14 @@
 @model List<sos100_bibliotek.Models.ReservationViewModel>
 
-<div class="reservation-page">
-    @model List<sos100_bibliotek.Models.ReservationViewModel>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success" style="max-width: 980px; margin: 20px auto 0 auto; padding: 12px; background-color: #d4edda; color: #155724; border-radius: 8px;">
-            @TempData["SuccessMessage"]
-        </div>
-    }
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success" style="max-width: 980px; margin: 20px auto 0 auto; padding: 12px; background-color: #d4edda; color: #155724; border-radius: 8px;">
+    @TempData["SuccessMessage"]
+</div>
+}
+<div class="reservation-page">
+    
 
     @if (TempData["ErrorMessage"] != null)
     {
