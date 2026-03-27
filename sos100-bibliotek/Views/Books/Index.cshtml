@@ -1,4 +1,4 @@
-﻿@using sos100_bibliotek.Controllers
+@using sos100_bibliotek.Controllers
 @model IEnumerable<sos100_bibliotek.Models.BookCatalogue>
 @{
     ViewData["Title"] = "Katalog";
@@ -6,14 +6,14 @@
 <link rel="stylesheet" href="~/css/BookCatalogue.css" asp-append-version="true"/>
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-success" style="padding: 15px; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 4px; margin-bottom: 20px;">
+    <div class="alert alert-success temp-alert" style="padding: 15px; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 4px; margin-bottom: 20px;">
         @TempData["SuccessMessage"]
     </div>
 }
 
 @if (TempData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger" style="padding: 15px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px; margin-bottom: 20px;">
+    <div class="alert alert-danger temp-alert" style="padding: 15px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px; margin-bottom: 20px;">
         @TempData["ErrorMessage"]
     </div>
 }
