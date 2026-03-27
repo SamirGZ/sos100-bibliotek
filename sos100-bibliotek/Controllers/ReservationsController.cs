@@ -11,22 +11,25 @@ public class ReservationsController : Controller
     private readonly HttpClient _httpClient;
     private readonly CatalogueService _catalogueService;
 
-    public ReservationsController(CatalogueService catalogueService, IConfiguration configuration)
+    public ReservationsController(CatalogueService catalogueService)
     {
         _catalogueService = catalogueService;
         _httpClient = new HttpClient();
-
-        var reservationApiUrl = configuration["ServiceUrls:ReservationApi"] ?? "http://localhost:5115/";
-        _httpClient.BaseAddress = new Uri(reservationApiUrl.EndsWith("/") ? reservationApiUrl : reservationApiUrl + "/");
+        _httpClient.BaseAddress = new Uri("http://localhost:5115/");
     }
 
     public async Task<IActionResult> Index()
     {
         var userId = HttpContext.Session.GetInt32("UserId");
+        var username = HttpContext.Session.GetString("Username");
+
         if (userId == null)
         {
             return RedirectToAction("Index", "Login");
         }
+
+        var isAdmin = username == "admin";
+        ViewBag.IsAdmin = isAdmin;
 
         var response = await _httpClient.GetAsync("api/reservations");
 
@@ -41,15 +44,24 @@ public class ReservationsController : Controller
             new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
-            });
+            }) ?? new List<ReservationViewModel>();
 
-        var myReservations = reservations?
-            .Where(r => r.UserId == userId)
-            .ToList() ?? new List<ReservationViewModel>();
+        List<ReservationViewModel> reservationsToShow;
+
+        if (isAdmin)
+        {
+            reservationsToShow = reservations;
+        }
+        else
+        {
+            reservationsToShow = reservations
+                .Where(r => r.UserId == userId.Value)
+                .ToList();
+        }
 
         var books = await _catalogueService.GetBookCatalogue();
 
-        foreach (var reservation in myReservations)
+        foreach (var reservation in reservationsToShow)
         {
             var book = books.FirstOrDefault(b => b.Id == reservation.ItemId);
 
@@ -60,7 +72,7 @@ public class ReservationsController : Controller
             }
         }
 
-        return View(myReservations);
+        return View(reservationsToShow);
     }
 
     [HttpPost]
@@ -96,17 +108,38 @@ public class ReservationsController : Controller
 
     public IActionResult Create()
     {
+        var username = HttpContext.Session.GetString("Username");
+
+        if (username != "admin")
+        {
+            return RedirectToAction("Index");
+        }
+
         return View();
     }
 
     [HttpPost]
     public async Task<IActionResult> Create(ReservationViewModel reservation)
     {
+        var username = HttpContext.Session.GetString("Username");
+
+        if (username != "admin")
+        {
+            return RedirectToAction("Index");
+        }
+
         var json = JsonSerializer.Serialize(reservation);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        await _httpClient.PostAsync("api/reservations", content);
+        var response = await _httpClient.PostAsync("api/reservations", content);
 
+        if (!response.IsSuccessStatusCode)
+        {
+            TempData["ErrorMessage"] = "Kunde inte skapa reservationen.";
+            return RedirectToAction("Index");
+        }
+
+        TempData["SuccessMessage"] = "Reservationen skapades!";
         return RedirectToAction("Index");
     }
 
@@ -114,6 +147,7 @@ public class ReservationsController : Controller
     public async Task<IActionResult> Delete(int id)
     {
         await _httpClient.DeleteAsync($"api/reservations/{id}");
+        TempData["SuccessMessage"] = "Reservationen togs bort.";
         return RedirectToAction("Index");
     }
 }
