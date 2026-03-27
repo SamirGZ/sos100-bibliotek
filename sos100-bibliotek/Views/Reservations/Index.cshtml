@@ -1,37 +1,52 @@
 @model List<sos100_bibliotek.Models.ReservationViewModel>
 
+@{
+    var isAdmin = ViewBag.IsAdmin != null && (bool)ViewBag.IsAdmin;
+    ViewData["Title"] = isAdmin ? "Alla reservationer" : "Mina reservationer";
+}
 
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert alert-success" style="max-width: 980px; margin: 20px auto 0 auto; padding: 12px; background-color: #d4edda; color: #155724; border-radius: 8px;">
-    @TempData["SuccessMessage"]
-</div>
+        @TempData["SuccessMessage"]
+    </div>
 }
-<div class="reservation-page">
-    
 
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger" style="max-width: 980px; margin: 20px auto 0 auto; padding: 12px; background-color: #f8d7da; color: #721c24; border-radius: 8px;">
-            @TempData["ErrorMessage"]
-        </div>
-    }
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger" style="max-width: 980px; margin: 20px auto 0 auto; padding: 12px; background-color: #f8d7da; color: #721c24; border-radius: 8px;">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<div class="reservation-page">
     <div class="reservation-card">
         <div class="page-header">
             <div>
                 <span class="page-label">Bibliotekssystem</span>
-                <h1>Mina reservationer</h1>
-                <p>Här kan du se dina aktuella reservationer och deras status.</p>
+                <h1>@(isAdmin ? "Alla reservationer" : "Mina reservationer")</h1>
+                <p>
+                    @(isAdmin
+                        ? "Här kan du se alla registrerade reservationer i systemet."
+                        : "Här kan du se dina aktuella reservationer och deras status.")
+                </p>
             </div>
 
-            <a asp-controller="Reservations" asp-action="Create" class="create-btn">Ny reservation</a>
+            @if (isAdmin)
+            {
+                <a asp-controller="Reservations" asp-action="Create" class="create-btn">Ny reservation</a>
+            }
         </div>
 
         @if (Model == null || !Model.Any())
         {
             <div class="empty-state">
                 <h3>Inga reservationer ännu</h3>
-                <p>Du har just nu inga registrerade reservationer.</p>
+                <p>
+                    @(isAdmin
+                        ? "Det finns just nu inga registrerade reservationer."
+                        : "Du har just nu inga registrerade reservationer.")
+                </p>
             </div>
         }
         else
@@ -41,6 +56,12 @@
                     <thead>
                     <tr>
                         <th>Bokningsnummer</th>
+
+                        @if (isAdmin)
+                        {
+                            <th>Användar-ID</th>
+                        }
+
                         <th>Bok</th>
                         <th>Författare</th>
                         <th>Bokningsdatum</th>
@@ -55,6 +76,12 @@
 
                         <tr>
                             <td>#@reservation.Id</td>
+
+                            @if (isAdmin)
+                            {
+                                <td>@reservation.UserId</td>
+                            }
+
                             <td>@(string.IsNullOrEmpty(reservation.BookTitle) ? $"Bok #{reservation.ItemId}" : reservation.BookTitle)</td>
                             <td>@(string.IsNullOrEmpty(reservation.BookAuthor) ? "-" : reservation.BookAuthor)</td>
                             <td>@reservation.ReservationDate.ToString("yyyy-MM-dd HH:mm")</td>
@@ -65,7 +92,7 @@
                             </td>
                             <td>
                                 <form asp-action="Delete" method="post">
-                                    <input type="hidden" name="id" value="@reservation.Id"/>
+                                    <input type="hidden" name="id" value="@reservation.Id" />
                                     <button type="submit" class="delete-btn">Ta bort</button>
                                 </form>
                             </td>
@@ -214,6 +241,7 @@
         margin: 0;
         color: #6b7280;
     }
+
     .delete-btn {
         background-color: #dc2626;
         color: white;
