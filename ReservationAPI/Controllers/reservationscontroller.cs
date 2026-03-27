@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ReservationApi.Data;
 using ReservationApi.Models;
+using System.Net.Http.Json;
 
 namespace ReservationApi.Controllers;
 
@@ -22,18 +23,40 @@ public class ReservationsController : ControllerBase
         var reservations = await _context.Reservations.ToListAsync();
         var result = new List<ReservationDto>();
 
+        using var httpClient = new HttpClient();
+
         foreach (var r in reservations)
         {
-            // ⚠️ TEMPORÄR LÖSNING (enkelt)
+            Book? book = null;
+            User? user = null;
+
+            try
+            {
+                book = await httpClient.GetFromJsonAsync<Book>($"https://localhost:5002/api/books/{r.ItemId}");
+            }
+            catch
+            {
+                // Ignorerar fel tillfälligt så sidan inte kraschar
+            }
+
+            try
+            {
+                user = await httpClient.GetFromJsonAsync<User>($"https://localhost:5001/api/users/{r.UserId}");
+            }
+            catch
+            {
+                // Ignorerar fel tillfälligt så sidan inte kraschar
+            }
+
             result.Add(new ReservationDto
             {
                 Id = r.Id,
                 UserId = r.UserId,
-                UserName = $"User {r.UserId}",
+                UserName = user?.Name ?? $"User {r.UserId}",
 
                 BookId = r.ItemId,
-                BookTitle = $"Book {r.ItemId}",
-                Author = "Unknown",
+                BookTitle = book?.Title ?? $"Book {r.ItemId}",
+                Author = book?.Author ?? "Unknown",
 
                 ReservationDate = r.ReservationDate,
                 Status = r.Status
