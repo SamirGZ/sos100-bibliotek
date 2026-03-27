@@ -26,8 +26,8 @@
                     <thead>
                     <tr>
                         <th>Bokningsnummer</th>
-                        <th>Objekt</th>
-                        <th>Användare</th>
+                        <th>Bok</th>
+                        <th>Författare</th>
                         <th>Bokningsdatum</th>
                         <th>Status</th>
                         <th>Åtgärd</th>
@@ -40,8 +40,8 @@
 
                         <tr>
                             <td>#@reservation.Id</td>
-                            <td>Objekt @reservation.ItemId</td>
-                            <td>Användare @reservation.UserId</td>
+                            <td>@(string.IsNullOrEmpty(reservation.BookTitle) ? $"Bok #{reservation.ItemId}" : reservation.BookTitle)</td>
+                            <td>@(string.IsNullOrEmpty(reservation.BookAuthor) ? "-" : reservation.BookAuthor)</td>
                             <td>@reservation.ReservationDate.ToString("yyyy-MM-dd HH:mm")</td>
                             <td>
                                 <span class="status-badge @(reservation.Status == "Cancelled" ? "cancelled" : "active")">
