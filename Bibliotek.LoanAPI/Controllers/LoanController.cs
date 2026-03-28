@@ -36,7 +36,7 @@ public class LoanController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Get() => Ok(await _context.Loans.ToListAsync());
 
-    // Kräver X-Api-Key från frontenden för att stoppa obehöriga    [ApiKeyAuthorize]
+    // Kräver X-Api-Key från frontenden för att stoppa obehöriga[ApiKeyAuthorize]
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Loan loan)
     {
