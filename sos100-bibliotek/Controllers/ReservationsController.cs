@@ -55,7 +55,7 @@ public class ReservationsController : Controller
         else
         {
             reservationsToShow = reservations
-                .Where(r => r.UserName == userId.Value)
+                .Where(r => r.UserId == userId.Value)
                 .ToList();
         }
 
@@ -68,7 +68,7 @@ public class ReservationsController : Controller
             if (book != null)
             {
                 reservation.BookTitle = book.Title;
-                reservation.BookAuthor = book.Author;
+                reservation.Author = book.Author;
             }
         }
 
@@ -87,8 +87,9 @@ public class ReservationsController : Controller
         var reservation = new ReservationViewModel
         {
             ItemId = itemId,
-            UserName = userId.Value,
-            Status = "Active"
+            UserId = userId.Value,
+            Status = "Active",
+            UserName = "test"
         };
 
         var json = JsonSerializer.Serialize(reservation);
