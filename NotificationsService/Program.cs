@@ -3,23 +3,60 @@ using NotificationsService.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. JSON-inställningar - Gör API:et extremt tillåtande
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-        options.JsonSerializerOptions.PropertyNamingPolicy = null; 
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
     });
 
 builder.Services.AddOpenApi();
 
-// 2. ÄNDRING: Vi använder In-Memory istället för SQLite för att slippa filproblem i Azure
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseInMemoryDatabase("NotificationDb")); 
+static string ResolveSqliteConnectionString(IConfiguration config)
+{
+    var configured = config.GetConnectionString("DefaultConnection");
+    return string.IsNullOrWhiteSpace(configured) ? "Data Source=notifications.db" : configured;
+}
 
-// 3. CORS - Öppna upp allt
-builder.Services.AddCors(options => {
-    options.AddPolicy("AllowAll", b => 
+static string ResolveSqliteDbPath(string connectionString)
+{
+    const string prefix = "Data Source=";
+    if (!connectionString.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+    {
+        return connectionString;
+    }
+
+    var dbPart = connectionString.Substring(prefix.Length).Trim().Trim('"');
+    if (Path.IsPathRooted(dbPart))
+    {
+        return connectionString;
+    }
+
+    // Azure App Service: HOME is the persistent location when enabled.
+    var isAzure = !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("WEBSITE_SITE_NAME"));
+    if (!isAzure)
+    {
+        return connectionString;
+    }
+
+    var home = Environment.GetEnvironmentVariable("HOME");
+    if (string.IsNullOrWhiteSpace(home))
+    {
+        return connectionString;
+    }
+
+    var dataDir = Path.Combine(home, "data");
+    Directory.CreateDirectory(dataDir);
+    var dbPath = Path.Combine(dataDir, dbPart);
+    return $"{prefix}{dbPath}";
+}
+
+var sqliteConn = ResolveSqliteDbPath(ResolveSqliteConnectionString(builder.Configuration));
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(sqliteConn));
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", b =>
         b.AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader());
@@ -27,26 +64,28 @@ builder.Services.AddCors(options => {
 
 var app = builder.Build();
 
-// 4. Initiera databasen i minnet
+// Initiera/migrera databasen vid start (men låt appen starta även om DB strular)
 using (var scope = app.Services.CreateScope())
 {
-    try 
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    try
     {
-        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        // Skapar den virtuella databasen i RAM
-        context.Database.EnsureCreated();
-        Console.WriteLine(">>> DATABASE: Success - In-Memory DB is running.");
+        var context = services.GetRequiredService<AppDbContext>();
+        logger.LogInformation("Notifications DB datasource: {DataSource}", context.Database.GetDbConnection().DataSource);
+        context.Database.Migrate();
     }
-    catch (Exception ex) 
+    catch (Exception ex)
     {
-        Console.WriteLine($">>> DATABASE ERROR: {ex.Message}");
+        logger.LogError(ex, "Database migration failed on startup.");
     }
 }
 
-// 5. Middleware-ordning
+app.MapGet("/", () => Results.Ok("NotificationsService running"));
+app.MapOpenApi();
+
 app.UseHttpsRedirection();
 
-// KRITISKT: CORS måste ligga här för att Azure ska tillåta anrop från LoanAPI
 app.UseCors("AllowAll");
 
 app.UseAuthorization();
