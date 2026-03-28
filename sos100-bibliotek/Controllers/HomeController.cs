@@ -26,7 +26,7 @@ public class HomeController : Controller
             _loanApiUrl = configUrl;
         }
 
-        // API-nyckel för att låsta delar av LoanAPI (VG-krav).
+        // API-nyckel för att låsta delar av LoanAPI 
         // Bör sättas i Azure App Settings som t.ex. ApiSettings__LoanApiKey.
         _loanApiKey = configuration["ApiSettings:LoanApiKey"];
     }
