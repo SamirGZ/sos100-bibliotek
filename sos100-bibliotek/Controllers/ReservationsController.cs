@@ -55,7 +55,7 @@ public class ReservationsController : Controller
         else
         {
             reservationsToShow = reservations
-                .Where(r => r.UserId == userId.Value)
+                .Where(r => r.UserName == userId.Value)
                 .ToList();
         }
 
@@ -87,7 +87,7 @@ public class ReservationsController : Controller
         var reservation = new ReservationViewModel
         {
             ItemId = itemId,
-            UserId = userId.Value,
+            UserName = userId.Value,
             Status = "Active"
         };
 
