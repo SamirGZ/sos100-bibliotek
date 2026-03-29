@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ReservationApi.Data;
 using ReservationApi.Models;
-using System.Net.Http.Json;
+using ReservationApi.Services;
 
 namespace ReservationApi.Controllers;
 
@@ -11,48 +11,48 @@ namespace ReservationApi.Controllers;
 public class ReservationsController : ControllerBase
 {
     private readonly ReservationDbContext _context;
+    private readonly IReservationUpstreamClient _upstream;
 
-    public ReservationsController(ReservationDbContext context)
+    public ReservationsController(ReservationDbContext context, IReservationUpstreamClient upstream)
     {
         _context = context;
+        _upstream = upstream;
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ReservationDto>>> GetReservations()
+    public async Task<ActionResult<IEnumerable<ReservationDto>>> GetReservations(CancellationToken cancellationToken)
     {
-        var reservations = await _context.Reservations.ToListAsync();
+        var reservations = await _context.Reservations.ToListAsync(cancellationToken);
         var result = new List<ReservationDto>();
-
-        using var httpClient = new HttpClient();
 
         foreach (var r in reservations)
         {
-            Book? book = null;
-            User? user = null;
+            CatalogueBook? book = null;
+            UserApiProfile? user = null;
 
             try
             {
-                book = await httpClient.GetFromJsonAsync<Book>($"https://localhost:5002/api/books/{r.ItemId}");
+                book = await _upstream.GetBookAsync(r.ItemId, cancellationToken);
             }
-            catch
+            catch (HttpRequestException)
             {
-                // Ignorerar fel tillfälligt så sidan inte kraschar
+                // KatalogAPI tillfälligt otillgänglig — visa reservation ändå
             }
 
             try
             {
-                user = await httpClient.GetFromJsonAsync<User>($"https://localhost:5001/api/users/{r.UserId}");
+                user = await _upstream.GetUserAsync(r.UserId, cancellationToken);
             }
-            catch
+            catch (HttpRequestException)
             {
-                // Ignorerar fel tillfälligt så sidan inte kraschar
+                // UserAPI otillgänglig
             }
 
             result.Add(new ReservationDto
             {
                 Id = r.Id,
                 UserId = r.UserId,
-                UserName = user?.Name ?? $"User {r.UserId}",
+                UserName = user?.Username ?? $"User {r.UserId}",
 
                 BookId = r.ItemId,
                 BookTitle = book?.Title ?? $"Book {r.ItemId}",
@@ -66,7 +66,7 @@ public class ReservationsController : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
     public async Task<ActionResult<Reservation>> GetReservation(int id)
     {
         var reservation = await _context.Reservations.FindAsync(id);
@@ -80,23 +80,45 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Reservation>> CreateReservation(Reservation reservation)
+    public async Task<ActionResult<Reservation>> CreateReservation([FromBody] CreateReservationDto dto, CancellationToken cancellationToken)
     {
-        reservation.ReservationDate = DateTime.UtcNow;
+        var user = await _upstream.GetUserAsync(dto.UserId, cancellationToken);
+        if (user == null)
+            return BadRequest(new { message = "UserId finns inte i UserAPI." });
+
+        var book = await _upstream.GetBookAsync(dto.BookId, cancellationToken);
+        if (book == null)
+            return BadRequest(new { message = "BookId finns inte i KatalogAPI." });
+
+        var reservation = new Reservation
+        {
+            UserId = dto.UserId,
+            ItemId = dto.BookId,
+            ReservationDate = DateTime.UtcNow,
+            Status = string.IsNullOrWhiteSpace(dto.Status) ? "Active" : dto.Status
+        };
 
         _context.Reservations.Add(reservation);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
         return CreatedAtAction(nameof(GetReservation), new { id = reservation.Id }, reservation);
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdateReservation(int id, Reservation reservation)
     {
         if (id != reservation.Id)
         {
             return BadRequest();
         }
+
+        var user = await _upstream.GetUserAsync(reservation.UserId);
+        if (user == null)
+            return BadRequest(new { message = "UserId finns inte i UserAPI." });
+
+        var book = await _upstream.GetBookAsync(reservation.ItemId);
+        if (book == null)
+            return BadRequest(new { message = "ItemId (bok) finns inte i KatalogAPI." });
 
         _context.Entry(reservation).State = EntityState.Modified;
 
@@ -117,7 +139,7 @@ public class ReservationsController : ControllerBase
         return NoContent();
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteReservation(int id)
     {
         var reservation = await _context.Reservations.FindAsync(id);

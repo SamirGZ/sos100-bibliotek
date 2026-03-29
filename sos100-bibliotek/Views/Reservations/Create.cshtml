@@ -1,8 +1,8 @@
 @model sos100_bibliotek.Models.ReservationViewModel
-
 @{
     ViewData["Title"] = "Ny reservation";
 }
+<link rel="stylesheet" href="~/css/reservations.css" asp-append-version="true"/>
 
 <div class="reservation-page">
     <div class="reservation-card">
@@ -10,146 +10,35 @@
             <div>
                 <span class="page-label">Bibliotekssystem</span>
                 <h1>Ny reservation</h1>
-                <p>Skapa en reservation manuellt som administratör.</p>
+                <p>
+                    Samma upplägg som reservationlistan: användar-ID ska finnas i UserAPI och bok-ID i katalogen.
+                </p>
             </div>
+            <a asp-action="Index" class="create-btn create-btn--ghost">Tillbaka till listan</a>
         </div>
 
         <form asp-action="Create" method="post" class="reservation-form">
             <div class="form-group">
                 <label asp-for="ItemId">Bok-ID</label>
-                <input asp-for="ItemId" class="form-control" />
+                <input asp-for="ItemId" class="form-control" type="number" min="1" required/>
+                <p class="form-hint">ID från katalogen (samma som i boklistan).</p>
             </div>
 
             <div class="form-group">
-                <label asp-for="UserName">Användar-ID</label>
-                <input asp-for="UserName" class="form-control" />
+                <label asp-for="UserId">Användar-ID</label>
+                <input asp-for="UserId" class="form-control" type="number" min="1" required/>
+                <p class="form-hint">ID från UserAPI (samma som användaren får vid inloggning).</p>
             </div>
 
             <div class="form-group">
                 <label asp-for="Status">Status</label>
-                <input asp-for="Status" class="form-control" value="Active" />
+                <input asp-for="Status" class="form-control" value="Active"/>
             </div>
 
             <div class="form-actions">
                 <button type="submit" class="save-btn">Spara reservation</button>
-                <a asp-action="Index" class="back-btn">Tillbaka</a>
+                <a asp-action="Index" class="back-btn">Avbryt</a>
             </div>
         </form>
     </div>
 </div>
-
-<style>
-    .reservation-page {
-        display: flex;
-        justify-content: center;
-        margin-top: 50px;
-        margin-bottom: 40px;
-        padding: 0 16px;
-    }
-
-    .reservation-card {
-        width: 100%;
-        max-width: 980px;
-        background: #ffffff;
-        border-radius: 20px;
-        padding: 36px;
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.07);
-    }
-
-    .page-header {
-        margin-bottom: 28px;
-    }
-
-    .page-label {
-        display: inline-block;
-        margin-bottom: 10px;
-        padding: 6px 12px;
-        background-color: #eef2ff;
-        color: #4338ca;
-        border-radius: 999px;
-        font-size: 13px;
-        font-weight: 700;
-    }
-
-    .page-header h1 {
-        margin: 0 0 8px 0;
-        font-size: 38px;
-        font-weight: 700;
-        color: #1f2937;
-    }
-
-    .page-header p {
-        margin: 0;
-        color: #6b7280;
-        font-size: 16px;
-    }
-
-    .reservation-form {
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-    }
-
-    .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .form-group label {
-        color: #374151;
-        font-weight: 600;
-        font-size: 15px;
-    }
-
-    .form-control {
-        width: 100%;
-        padding: 12px 14px;
-        border: 1px solid #d1d5db;
-        border-radius: 10px;
-        font-size: 15px;
-        color: #111827;
-        background-color: #ffffff;
-    }
-
-    .form-control:focus {
-        outline: none;
-        border-color: #4f46e5;
-        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
-    }
-
-    .form-actions {
-        display: flex;
-        gap: 12px;
-        margin-top: 10px;
-    }
-
-    .save-btn {
-        background-color: #4f46e5;
-        color: white;
-        border: none;
-        padding: 12px 18px;
-        border-radius: 10px;
-        font-weight: 600;
-        cursor: pointer;
-    }
-
-    .save-btn:hover {
-        background-color: #4338ca;
-    }
-
-    .back-btn {
-        display: inline-block;
-        padding: 12px 18px;
-        border-radius: 10px;
-        text-decoration: none;
-        font-weight: 600;
-        background-color: #e5e7eb;
-        color: #374151;
-    }
-
-    .back-btn:hover {
-        background-color: #d1d5db;
-        color: #111827;
-    }
-</style>

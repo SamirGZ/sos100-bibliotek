@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Json;
+using System.Net.Http.Json;
 using sos100_bibliotek.Models;
 
 namespace sos100_bibliotek.Services;
@@ -22,6 +22,16 @@ public class UserApiService
             return await response.Content.ReadFromJsonAsync<UserViewModel>();
         }
         return null; // Returnerar null om inloggningen misslyckas (t.ex. fel lösenord eller 404)
+    }
+
+    /// <summary>Samma UserAPI-instans som inloggning — ger rätt användarnamn per id i vyn.</summary>
+    public async Task<UserApiProfileResponse?> GetUserByIdAsync(int id)
+    {
+        var response = await _httpClient.GetAsync($"api/users/{id}");
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await response.Content.ReadFromJsonAsync<UserApiProfileResponse>();
     }
 
     public async Task<UserViewModel?> GetUserAsync(string username)

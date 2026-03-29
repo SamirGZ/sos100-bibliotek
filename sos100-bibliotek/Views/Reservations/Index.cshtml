@@ -1,20 +1,21 @@
+@using sos100_bibliotek.Helpers
 @model List<sos100_bibliotek.Models.ReservationViewModel>
-
 @{
     var isAdmin = ViewBag.IsAdmin != null && (bool)ViewBag.IsAdmin;
     ViewData["Title"] = isAdmin ? "Alla reservationer" : "Mina reservationer";
 }
+<link rel="stylesheet" href="~/css/reservations.css" asp-append-version="true"/>
 
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-success" style="max-width: 980px; margin: 20px auto 0 auto; padding: 12px; background-color: #d4edda; color: #155724; border-radius: 8px;">
+    <div class="reservation-alert reservation-alert--success">
         @TempData["SuccessMessage"]
     </div>
 }
 
 @if (TempData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger" style="max-width: 980px; margin: 20px auto 0 auto; padding: 12px; background-color: #f8d7da; color: #721c24; border-radius: 8px;">
+    <div class="reservation-alert reservation-alert--error">
         @TempData["ErrorMessage"]
     </div>
 }
@@ -27,8 +28,8 @@
                 <h1>@(isAdmin ? "Alla reservationer" : "Mina reservationer")</h1>
                 <p>
                     @(isAdmin
-                        ? "Här kan du se alla registrerade reservationer i systemet."
-                        : "Här kan du se dina aktuella reservationer och deras status.")
+                        ? "Översikt över alla reservationer. Tid visas i svensk lokal tid."
+                        : "Dina reservationer. Tid visas i svensk lokal tid.")
                 </p>
             </div>
 
@@ -40,12 +41,12 @@
 
         @if (Model == null || !Model.Any())
         {
-            <div class="empty-state">
+            <div class="reservation-empty">
                 <h3>Inga reservationer ännu</h3>
                 <p>
                     @(isAdmin
-                        ? "Det finns just nu inga registrerade reservationer."
-                        : "Du har just nu inga registrerade reservationer.")
+                        ? "Det finns inga registrerade reservationer."
+                        : "Du har inga reservationer just nu.")
                 </p>
             </div>
         }
@@ -55,18 +56,16 @@
                 <table class="reservation-table">
                     <thead>
                     <tr>
-                        <th>Bokningsnummer</th>
-
+                        <th>Nr</th>
                         @if (isAdmin)
                         {
-                            <th>Användare</th> <!-- 🔥 ÄNDRAD -->
+                            <th>Användare</th>
                         }
-
                         <th>Bok</th>
                         <th>Författare</th>
-                        <th>Bokningsdatum</th>
+                        <th>Datum &amp; tid</th>
                         <th>Status</th>
-                        <th>Åtgärd</th>
+                        <th></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -75,27 +74,24 @@
                         var swedishStatus = reservation.Status == "Cancelled" ? "Avbokad" : "Aktiv";
 
                         <tr>
-                            <td>#@reservation.Id</td>
-
+                            <td><strong>#@reservation.Id</strong></td>
                             @if (isAdmin)
                             {
-                                <td>@reservation.UserName</td> <!-- 🔥 FIX -->
+                                <td>
+                                    <span class="text-break">@(string.IsNullOrEmpty(reservation.UserName) ? $"id {reservation.UserId}" : reservation.UserName)</span>
+                                </td>
                             }
-
-                            <td>@reservation.BookTitle</td> <!-- 🔥 FIX -->
-                            <td>@reservation.Author</td> <!-- 🔥 FIX -->
-
-                            <td>@reservation.ReservationDate.ToString("yyyy-MM-dd HH:mm")</td>
-
+                            <td>@(string.IsNullOrEmpty(reservation.BookTitle) ? $"Bok #{reservation.ItemId}" : reservation.BookTitle)</td>
+                            <td>@(string.IsNullOrEmpty(reservation.Author) ? "—" : reservation.Author)</td>
+                            <td class="text-nowrap">@SwedenTime.FormatStockholm(reservation.ReservationDate)</td>
                             <td>
                                 <span class="status-badge @(reservation.Status == "Cancelled" ? "cancelled" : "active")">
                                     @swedishStatus
                                 </span>
                             </td>
-
                             <td>
-                                <form asp-action="Delete" method="post">
-                                    <input type="hidden" name="id" value="@reservation.Id" />
+                                <form asp-action="Delete" method="post" class="m-0">
+                                    <input type="hidden" name="id" value="@reservation.Id"/>
                                     <button type="submit" class="delete-btn">Ta bort</button>
                                 </form>
                             </td>

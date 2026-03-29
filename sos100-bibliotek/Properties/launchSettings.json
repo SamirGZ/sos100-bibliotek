@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
     "http": {
@@ -7,7 +7,10 @@
       "launchBrowser": true,
       "applicationUrl": "http://localhost:5131",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ServiceUrls__UserApi": "http://localhost:5027",
+        "ServiceUrls__CatalogueApi": "http://localhost:5149",
+        "ServiceUrls__ReservationApi": "http://localhost:5115"
       }
     },
     "https": {
@@ -16,7 +19,10 @@
       "launchBrowser": true,
       "applicationUrl": "https://localhost:7068;http://localhost:5131",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ServiceUrls__UserApi": "http://localhost:5027",
+        "ServiceUrls__CatalogueApi": "http://localhost:5149",
+        "ServiceUrls__ReservationApi": "http://localhost:5115"
       }
     }
   }

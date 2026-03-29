@@ -1,4 +1,4 @@
-using System.Text;
+using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using sos100_bibliotek.Models;
@@ -8,15 +8,21 @@ namespace sos100_bibliotek.Controllers;
 
 public class ReservationsController : Controller
 {
-    private readonly HttpClient _httpClient;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly CatalogueService _catalogueService;
+    private readonly UserApiService _userApiService;
 
-    public ReservationsController(CatalogueService catalogueService)
+    public ReservationsController(
+        CatalogueService catalogueService,
+        IHttpClientFactory httpClientFactory,
+        UserApiService userApiService)
     {
         _catalogueService = catalogueService;
-        _httpClient = new HttpClient();
-        _httpClient.BaseAddress = new Uri("http://localhost:5115/");
+        _httpClientFactory = httpClientFactory;
+        _userApiService = userApiService;
     }
+
+    private HttpClient ReservationApiClient => _httpClientFactory.CreateClient("ReservationApi");
 
     public async Task<IActionResult> Index()
     {
@@ -31,7 +37,7 @@ public class ReservationsController : Controller
         var isAdmin = username == "admin";
         ViewBag.IsAdmin = isAdmin;
 
-        var response = await _httpClient.GetAsync("api/reservations");
+        var response = await ReservationApiClient.GetAsync("api/reservations");
 
         if (!response.IsSuccessStatusCode)
         {
@@ -60,9 +66,20 @@ public class ReservationsController : Controller
         }
 
         var books = await _catalogueService.GetBookCatalogue();
+        var userIds = reservationsToShow.Select(r => r.UserId).Distinct().ToList();
+        var userNames = new Dictionary<int, string>();
+        foreach (var uid in userIds)
+        {
+            var profile = await _userApiService.GetUserByIdAsync(uid);
+            if (profile != null)
+                userNames[uid] = profile.Username;
+        }
 
         foreach (var reservation in reservationsToShow)
         {
+            if (userNames.TryGetValue(reservation.UserId, out var un))
+                reservation.UserName = un;
+
             var book = books.FirstOrDefault(b => b.Id == reservation.ItemId);
 
             if (book != null)
@@ -84,18 +101,12 @@ public class ReservationsController : Controller
             return RedirectToAction("Index", "Login");
         }
 
-        var reservation = new ReservationViewModel
+        var response = await ReservationApiClient.PostAsJsonAsync("api/reservations", new
         {
-            ItemId = itemId,
-            UserId = userId.Value,
-            Status = "Active",
-            UserName = "test"
-        };
-
-        var json = JsonSerializer.Serialize(reservation);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var response = await _httpClient.PostAsync("api/reservations", content);
+            userId = userId.Value,
+            bookId = itemId,
+            status = "Active"
+        });
 
         if (!response.IsSuccessStatusCode)
         {
@@ -129,14 +140,16 @@ public class ReservationsController : Controller
             return RedirectToAction("Index");
         }
 
-        var json = JsonSerializer.Serialize(reservation);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var response = await _httpClient.PostAsync("api/reservations", content);
+        var response = await ReservationApiClient.PostAsJsonAsync("api/reservations", new
+        {
+            userId = reservation.UserId,
+            bookId = reservation.ItemId,
+            status = string.IsNullOrWhiteSpace(reservation.Status) ? "Active" : reservation.Status
+        });
 
         if (!response.IsSuccessStatusCode)
         {
-            TempData["ErrorMessage"] = "Kunde inte skapa reservationen.";
+            TempData["ErrorMessage"] = "Kunde inte skapa reservationen. Kontrollera att användar-ID och bok-ID finns i UserAPI respektive KatalogAPI.";
             return RedirectToAction("Index");
         }
 
@@ -147,7 +160,7 @@ public class ReservationsController : Controller
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {
-        await _httpClient.DeleteAsync($"api/reservations/{id}");
+        await ReservationApiClient.DeleteAsync($"api/reservations/{id}");
         TempData["SuccessMessage"] = "Reservationen togs bort.";
         return RedirectToAction("Index");
     }

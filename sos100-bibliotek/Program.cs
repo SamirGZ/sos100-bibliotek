@@ -35,6 +35,13 @@ builder.Services.AddHttpClient<LoanService>(client =>
     client.BaseAddress = new Uri(url.EndsWith("/") ? url : url + "/");
 });
 
+builder.Services.AddHttpClient("ReservationApi", client =>
+{
+    var url = builder.Configuration["ServiceUrls:ReservationApi"]
+              ?? "http://localhost:5115";
+    client.BaseAddress = new Uri(url.EndsWith("/") ? url : url + "/");
+});
+
 builder.Services.AddScoped<NotificationService>();
 
 var app = builder.Build();

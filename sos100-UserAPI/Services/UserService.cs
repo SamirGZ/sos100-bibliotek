@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 public class UserService : IUserService
 {
@@ -35,6 +35,11 @@ public class UserService : IUserService
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<User?> GetUserByIdAsync(int id)
+    {
+        return await _context.Users.FindAsync(id);
     }
 
     public async Task<User?> GetUserAsync(string username)

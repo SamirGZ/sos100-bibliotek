@@ -10,5 +10,5 @@ public class ReservationDbContext : DbContext
     {
     }
 
-    public DbSet<Reservation> Reservations { get; set; }
+    public DbSet<Reservation> Reservations { get; set; } = null!;
 }
