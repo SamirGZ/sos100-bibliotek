@@ -21,6 +21,13 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+// Detta tvingar Azure att skapa SQLite-filen och tabellerna om de inte redan finns.
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ReservationDbContext>();
+    dbContext.Database.EnsureCreated();
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
