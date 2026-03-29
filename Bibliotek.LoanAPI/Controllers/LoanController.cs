@@ -105,14 +105,12 @@ public class LoanController : ControllerBase
 
     private async Task SendNotification(int userId, string username, string message)    
     {
-        // Try-catch är kritiskt här. Om notifikationstjänsten är nere (t.ex. pga Azure Quota) 
-        // får det INTE krascha hela låne-processen. Kärnfunktionaliteten (lånet) ska prioriteras.
         try 
         {
             using var client = new HttpClient();
-            var url = "https://app-sos100-notificationsservice.azurewebsites.net/api/notifications";
+            
+            var url = _notificationsApiUrl;
 
-            // Bygger DTO-objektet som mottagaren (NotificationsAPI) förväntar sig.
             var payload = new { 
                 UserId = userId, 
                 Username = username ?? "Användare", 
@@ -121,11 +119,12 @@ public class LoanController : ControllerBase
                 CreatedAt = DateTime.Now
             };
 
-            await client.PostAsJsonAsync(url, payload);
+            
+            var modernClient = _httpClientFactory.CreateClient();
+            await modernClient.PostAsJsonAsync(url, payload);
         }
         catch (Exception ex) 
         { 
-            // Loggar felet internt för felsökning via Azure Log Stream.
             Console.WriteLine($">>> KUNDE INTE SKICKA NOTIS: {ex.Message}"); 
         }
     }
