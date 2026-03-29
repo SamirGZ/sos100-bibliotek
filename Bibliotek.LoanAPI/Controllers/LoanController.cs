@@ -36,7 +36,8 @@ public class LoanController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Get() => Ok(await _context.Loans.ToListAsync());
 
-    // Kräver X-Api-Key från frontenden för att stoppa obehöriga[ApiKeyAuthorize]
+    // Kräver X-Api-Key från frontenden för att stoppa obehöriga
+    [ApiKeyAuthorize] 
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Loan loan)
     {
@@ -55,11 +56,21 @@ public class LoanController : ControllerBase
         _context.Loans.Add(loan);
         await _context.SaveChangesAsync();
 
+        // Skapar en händelselogg för att spara historik kring lånet i databasen (En-till-många relation).
+        var loanEvent = new LoanEvent 
+        {
+            LoanId = loan.Id,
+            Action = "Bok utlånad",
+            EventDate = DateTime.Now
+        };
+        _context.LoanEvents.Add(loanEvent);
+        await _context.SaveChangesAsync();
+
         // 3. Triggar en integration till notifikationstjänsten när lånet sparats korrekt.
         await SendNotification(loan.UserId, loan.Username, $"Du har lånat boken: {loan.BookTitle}");
 
         // Returnerar 201 Created tillsammans med det nyskapade objektet och dess nya ID.
-        return CreatedAtAction(nameof(Get), new { id = loan.Id }, loan);
+        return StatusCode(201, loan);
     }
 
     [ApiKeyAuthorize] // Skyddar uppdateringar så ingen kan ändra data utifrån
@@ -71,6 +82,16 @@ public class LoanController : ControllerBase
 
         // Vi uppdaterar endast IsReturned (Soft delete-princip) för att bevara lånehistorik.
         loan.IsReturned = updated.IsReturned;
+        
+        // Loggar uppdateringen i historik-tabellen
+        var updateEvent = new LoanEvent 
+        {
+            LoanId = loan.Id,
+            Action = loan.IsReturned ? "Bok återlämnad" : "Lån uppdaterat",
+            EventDate = DateTime.Now
+        };
+        _context.LoanEvents.Add(updateEvent);
+        
         await _context.SaveChangesAsync();
 
         // Skickar enbart en notis om boken faktiskt markeras som återlämnad nu.

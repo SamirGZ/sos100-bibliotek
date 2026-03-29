@@ -60,8 +60,16 @@ public class HomeController : Controller
             var response = await client.PostAsJsonAsync(requestUrl, loanRequest);
             
             // Använder TempData för UI-feedback eftersom det överlever vår RedirectToAction
-            if (response.IsSuccessStatusCode) TempData["SuccessMessage"] = $"Boken '{bookTitle}' har lånats!";
-            else TempData["ErrorMessage"] = "API svarade med fel vid lån.";
+            if (response.IsSuccessStatusCode) 
+            {
+                TempData["SuccessMessage"] = $"Grattis, du har nu lånat boken '{bookTitle}'!";
+            }
+            else 
+            {
+                // Läser ut API:ets specifika felmeddelande om boken redan är tagen
+                var apiError = await response.Content.ReadAsStringAsync();
+                TempData["ErrorMessage"] = string.IsNullOrWhiteSpace(apiError) ? "Ett okänt fel inträffade vid lån." : apiError;
+            }
         }
         catch { TempData["ErrorMessage"] = "Kunde inte ansluta till lånetjänsten."; }
 
