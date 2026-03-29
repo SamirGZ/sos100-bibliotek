@@ -9,7 +9,7 @@
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
     <data-source source="LOCAL" name="library" uuid="729fa5c5-728e-46bb-b4ef-8375988639cc">
-      <driver-ref>2e6daa2a-f0b2-4716-b9db-ac0a2c203b91</driver-ref>
+      <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/sos100-UserAPI/library.db</jdbc-url>
@@ -24,7 +24,7 @@
       </libraries>
     </data-source>
     <data-source source="LOCAL" name="LoanDatabase" uuid="2eade43d-32ed-4c6c-954a-88144d1ea7eb">
-      <driver-ref>sqlite.xerial</driver-ref>
+      <driver-ref>4f64a3ec-d456-4496-a6db-df64b2c50cbd</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/Bibliotek.LoanAPI/LoanDatabase.db</jdbc-url>
@@ -36,7 +36,7 @@
       </libraries>
     </data-source>
     <data-source source="LOCAL" name="notifications" uuid="dbf2046f-67b3-4e31-85d9-5d2d6fedea79">
-      <driver-ref>sqlite.xerial</driver-ref>
+      <driver-ref>4f64a3ec-d456-4496-a6db-df64b2c50cbd</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/NotificationsService/notifications.db</jdbc-url>
@@ -48,7 +48,7 @@
       </libraries>
     </data-source>
     <data-source source="LOCAL" name="reservations" uuid="abcf5ae8-5908-432f-9210-f8ea3b6e532c">
-      <driver-ref>sqlite.xerial</driver-ref>
+      <driver-ref>4f64a3ec-d456-4496-a6db-df64b2c50cbd</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/ReservationAPI/reservations.db</jdbc-url>

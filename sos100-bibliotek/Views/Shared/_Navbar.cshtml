@@ -11,6 +11,10 @@
     @if (Context.Session.GetString("Username") != null)
     {
         @* Knapparna börjar på kolumn 10 för att ge utrymme åt namnet till vänster *@
+        <button class="navbutton" style="grid-area: 1 / 9;">
+            <a asp-controller="Books" asp-action="Index">Katalog</a>
+        </button>
+        
         <button class="navbutton" style="grid-area: 1 / 10;">
             <a asp-controller="Home" asp-action="MyLoans">Mina lån</a>
         </button>
@@ -35,6 +39,10 @@
     {
         <button class="navbutton" style="grid-area: 1 / 14;">
             <a asp-controller="Login" asp-action="Index">Logga In</a>
+        </button>
+        
+        <button class="navbutton" style="grid-area: 1 / 13;">
+            <a asp-controller="Books" asp-action="Index">Katalog</a>
         </button>
     }
 </nav>
