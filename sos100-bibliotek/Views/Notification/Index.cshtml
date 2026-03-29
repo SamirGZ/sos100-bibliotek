@@ -1,53 +1,73 @@
 @model List<sos100_bibliotek.Services.NotificationDto>
+@{
+    var currentUserId = Context.Session.GetInt32("UserId");
+    var isAdmin = string.Equals(Context.Session.GetString("Role"), "admin", StringComparison.OrdinalIgnoreCase)
+                  || string.Equals(Context.Session.GetString("Username"), "admin", StringComparison.OrdinalIgnoreCase);
+}
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-bell"></i> Notifikationer</h2>
-        <span class="badge bg-primary">Totalt: @Model.Count</span>
-    </div>
+<div class="content-wrapper" style="padding: 2rem;">
+    <h2>@(isAdmin ? "Hantera notifikationer" : "Mina notifikationer")</h2>
+
+    @if (isAdmin)
+    {
+        <form asp-controller="Notification" asp-action="CheckOverdueLoans" method="post" class="mb-3">
+            <button type="submit" class="btn btn-warning">
+                Klicka här för att skicka automatiska påminnelser (försenade lån)
+            </button>
+        </form>
+    }
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success">@TempData["Message"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+    @* Bakåtkompatibilitet om någon kod sätter gamla nycklar *@
+    @if (TempData["NotificationMsg"] != null)
+    {
+        <div class="alert alert-success">@TempData["NotificationMsg"]</div>
+    }
+    @if (TempData["NotificationError"] != null)
+    {
+        <div class="alert alert-danger">@TempData["NotificationError"]</div>
+    }
 
     @if (!Model.Any())
     {
-        <div class="alert alert-light border shadow-sm text-center py-5">
-            <i class="bi bi-inbox fs-1 text-muted"></i>
-            <p class="mt-2 text-muted">Du har inga notifikationer just nu.</p>
-        </div>
+        <div class="alert alert-info">Inga notifikationer just nu.</div>
     }
     else
     {
-        <div class="list-group">
+        <div class="list-group mt-3">
             @foreach (var n in Model)
             {
-                <div class="list-group-item list-group-item-action shadow-sm mb-3 border-0 rounded @(n.IsRead ? "opacity-75" : "border-start border-primary border-4")">
-                    <div class="d-flex w-100 justify-content-between align-items-start">
-                        <div class="ms-2 me-auto">
-                            <div class="fw-bold @(n.IsRead ? "text-muted" : "text-dark")">
-                                @n.Message
-                            </div>
-                            <small class="text-muted">
-                                <i class="bi bi-person"></i> @(string.IsNullOrEmpty(n.Username) ? "Okänd" : n.Username) 
-                                <span class="mx-2">|</span> 
-                                <i class="bi bi-clock"></i> @n.CreatedAt.ToString("g")
-                            </small>
-                        </div>
-                        
-                        <div class="btn-group ms-3">
-                            @if (!n.IsRead)
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="mb-1 @(n.IsRead ? "text-muted" : "fw-bold")">@n.Message</p>
+                        <small class="text-muted">
+                            @(isAdmin ? $"Användare: {n.UserId} ({n.Username}) | " : "")@n.CreatedAt.ToString("g")
+                            @if (n.IsRead && !isAdmin)
                             {
-                                <form asp-action="MarkAsRead" method="post" class="d-inline">
-                                    <input type="hidden" name="id" value="@n.Id" />
-                                    <button type="submit" class="btn btn-sm btn-outline-success border-0" title="Markera som läst">
-                                        <i class="bi bi-check2-circle"></i>
-                                    </button>
-                                </form>
+                                <span class="text-success ms-2">Läst</span>
                             }
-                            <form asp-action="Delete" method="post" class="d-inline">
+                        </small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        @if (!n.IsRead && !isAdmin)
+                        {
+                            <form asp-controller="Notification" asp-action="MarkAsRead" method="post" class="d-inline">
                                 <input type="hidden" name="id" value="@n.Id" />
-                                <button type="submit" class="btn btn-sm btn-outline-danger border-0" onclick="return confirm('Ta bort notis?')" title="Radera">
-                                    <i class="bi bi-trash"></i>
-                                </button>
+                                <button type="submit" class="btn btn-sm btn-outline-success">Markera som läst</button>
                             </form>
-                        </div>
+                        }
+                        <form asp-controller="Notification" asp-action="Delete" method="post" class="d-inline"
+                              onsubmit="return confirm('Ta bort den här notisen?');">
+                            <input type="hidden" name="id" value="@n.Id" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Ta bort</button>
+                        </form>
                     </div>
                 </div>
             }

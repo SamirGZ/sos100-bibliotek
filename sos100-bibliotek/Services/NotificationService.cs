@@ -1,8 +1,9 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace sos100_bibliotek.Services;
 
-// 1. DTO-klasser (Modeller för data från API:erna)
+// DTO – API:t serialiserar normalt camelCase; vi måste läsa case-insensitivt.
 public class NotificationDto
 {
     public int Id { get; set; }
@@ -22,9 +23,13 @@ public class LoanDto
     public bool IsReturned { get; set; }
 }
 
-// 2. Själva tjänsten
 public class NotificationService
 {
+    private static readonly JsonSerializerOptions JsonReadOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfiguration _configuration;
 
@@ -34,20 +39,50 @@ public class NotificationService
         _configuration = configuration;
     }
 
+    /// <summary>
+    /// Alltid full URL – fungerar oavsett HttpClient BaseAddress (vanlig felkälla i Azure).
+    /// </summary>
+    private string NotificationsRoot()
+    {
+        var url = _configuration["ServiceUrls:NotificationsApi"]?.Trim();
+        if (string.IsNullOrEmpty(url))
+            throw new InvalidOperationException("Saknar ServiceUrls:NotificationsApi i konfiguration.");
+        return url.TrimEnd('/');
+    }
+
+    private static async Task ThrowUnlessOk(HttpResponseMessage response)
+    {
+        if (response.IsSuccessStatusCode) return;
+        var body = await response.Content.ReadAsStringAsync();
+        throw new HttpRequestException(
+            $"Notifications API {(int)response.StatusCode} {response.ReasonPhrase}. {body}");
+    }
+
     public async Task<List<NotificationDto>> GetNotificationsAsync()
     {
+        var url = $"{NotificationsRoot()}/api/notifications";
         try
         {
-            using var client = new HttpClient(); // Använd en ren klient för demon
-            var url = "https://app-sos100-notificationsservice.azurewebsites.net/api/notifications";
-        
-            return await client.GetFromJsonAsync<List<NotificationDto>>(url) ?? new();
+            var client = _httpClientFactory.CreateClient();
+            return await client.GetFromJsonAsync<List<NotificationDto>>(url, JsonReadOptions) ?? new();
         }
-        catch (Exception ex) 
-        { 
-            Console.WriteLine("Hämtningsfel: " + ex.Message);
-            return new List<NotificationDto>(); 
+        catch (Exception ex)
+        {
+            Console.WriteLine("Hämtningsfel notiser: " + ex.Message);
+            return new List<NotificationDto>();
         }
+    }
+
+    /// <summary>Hämtar en notis (används innan delete/mark-read så vi kan verifiera rätt användare).</summary>
+    public async Task<NotificationDto?> GetNotificationByIdAsync(int id)
+    {
+        var url = $"{NotificationsRoot()}/api/notifications/{id}";
+        var client = _httpClientFactory.CreateClient();
+        var response = await client.GetAsync(url);
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return null;
+        await ThrowUnlessOk(response);
+        return await response.Content.ReadFromJsonAsync<NotificationDto>(JsonReadOptions);
     }
 
     public async Task CheckOverdueLoansAsync()
@@ -55,9 +90,10 @@ public class NotificationService
         try
         {
             var client = _httpClientFactory.CreateClient();
-            var loanApiUrl = _configuration["ServiceUrls:LoanApi"];
-            var loans = await client.GetFromJsonAsync<List<LoanDto>>($"{loanApiUrl}/api/loan");
+            var loanApiUrl = _configuration["ServiceUrls:LoanApi"]?.TrimEnd('/');
+            if (string.IsNullOrEmpty(loanApiUrl)) return;
 
+            var loans = await client.GetFromJsonAsync<List<LoanDto>>($"{loanApiUrl}/api/loan", JsonReadOptions);
             if (loans == null) return;
 
             foreach (var loan in loans)
@@ -65,36 +101,49 @@ public class NotificationService
                 if (!loan.IsReturned && loan.ReturnDate < DateTime.Now)
                 {
                     await CreateNotificationAsync(
-                        $"PÅMINNELSE: Lånet är försenat. Vänligen returnera boken.",
+                        "PÅMINNELSE: Lånet är försenat. Vänligen returnera boken.",
                         loan.UserId,
-                        loan.Username
-                    );
+                        loan.Username);
                 }
             }
         }
-        catch (Exception ex) { Console.WriteLine("CheckOverdue Error: " + ex.Message); }
+        catch (Exception ex)
+        {
+            Console.WriteLine("CheckOverdue Error: " + ex.Message);
+        }
     }
 
     private async Task CreateNotificationAsync(string message, int userId, string username)
     {
-        var client = _httpClientFactory.CreateClient("NotificationsAPI");
-        await client.PostAsJsonAsync("api/notifications", new { 
-            Message = message, 
-            UserId = userId, 
-            Username = username, 
-            IsRead = false 
+        var url = $"{NotificationsRoot()}/api/notifications";
+        var client = _httpClientFactory.CreateClient();
+        var response = await client.PostAsJsonAsync(url, new
+        {
+            Message = message,
+            UserId = userId,
+            Username = username,
+            IsRead = false
         });
+        await ThrowUnlessOk(response);
     }
 
     public async Task DeleteNotificationAsync(int id)
     {
-        var client = _httpClientFactory.CreateClient("NotificationsAPI");
-        await client.DeleteAsync($"api/notifications/{id}");
+        var client = _httpClientFactory.CreateClient();
+        // GET /delete – fungerar där DELETE blockeras eller strular
+        var url = $"{NotificationsRoot()}/api/notifications/{id}/delete";
+        var response = await client.GetAsync(url);
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return;
+        await ThrowUnlessOk(response);
     }
 
     public async Task MarkAsReadAsync(int id)
     {
-        var client = _httpClientFactory.CreateClient("NotificationsAPI");
-        await client.PutAsJsonAsync($"api/notifications/{id}", new { Id = id, IsRead = true });
+        var client = _httpClientFactory.CreateClient();
+        // GET /read – samma logik som POST, enklast för server→server på Azure
+        var url = $"{NotificationsRoot()}/api/notifications/{id}/read";
+        var response = await client.GetAsync(url);
+        await ThrowUnlessOk(response);
     }
 }
